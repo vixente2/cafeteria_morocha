@@ -10,4 +10,5 @@ urlpatterns = [
     path('usuario/',views.usuario),
     path('procesarUsuario/',views.procesarUsuario),
     path('eliminarUsuario/<str:nombreUsuario>/',views.eliminarUsuario,name='eliminarUsuario'),
+
 ]

@@ -14,6 +14,7 @@ $(document).ready(function () {
             confirmButtonText: "Sí, Eliminar"
         }).then((result) => {
             if (result.isConfirmed)
+                window.location.href = "/eliminarPedido/" + id_pedido + "/";
                 window.location.href = "/eliminarPedido/" + id_pedido;
         });
     });
@@ -28,6 +29,20 @@ $(document).ready(function () {
     Swal.fire({
         title: "Información del Pedido",
         icon: 'info',
+        html: (() => {
+            const escapeHtml = (v) => String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+            return `
+                <table class="table table-bordered">
+                    <thead class="table-dark"><tr><th colspan="2" class="text-center">Vista Previa</th></tr></thead>
+                    <tbody>
+                        <tr><td><strong># Pedido</strong></td><td>${escapeHtml(id_pedido)}</td></tr>
+                        <tr><td><strong>Fecha</strong></td><td>${escapeHtml(fecha)}</td></tr>
+                        <tr><td><strong>Mesa</strong></td><td>${escapeHtml(mesa)}</td></tr>
+                        <tr><td><strong>Cliente</strong></td><td>${escapeHtml(cliente)}</td></tr>
+                        <tr><td><strong>Estado</strong></td><td>${escapeHtml(estado)}</td></tr>
+                    </tbody>
+                </table>`;
+        })(),
         html: `
             <table class="table table-bordered">
                 <thead class="table-dark">

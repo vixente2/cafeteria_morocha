@@ -15,6 +15,10 @@
 <body class="container">
     <h1>Menú de navegación</h1><br>
     <ul>
+        <li><a href="{% url 'inicio' %}">Inicio</a></li>
+        <li><a href="{% url 'login' %}">Login</a></li>
+        <li><a href="{% url 'registrarPedido' %}">Registro Pedidos</a></li>
+        <li><a href="{% url 'detallePedido' id_pedido %}">Detalle Pedidos</a></li>
         <li><a href="/">Inicio</a></li>
         <li><a href="/login/">Login</a></li>
         <li><a href="/registrarPedido/">Registro Pedidos</a></li>        
@@ -38,6 +42,8 @@
           <div class="section-tag">Información del pedido</div>
             <input type="hidden" name="id_pedido" value="{{ id_pedido }}">
 
+            <div class="row g-3">
+              <div class="col-6">
             <div class="col-6">
               <label class="form-label" for="id_mesa">Mesa</label>
               <select class="form-select" name="id_mesa" id="id_mesa" required>

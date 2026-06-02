@@ -2,6 +2,8 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from .db import ConexionDB
 
+# Create your views here.
+
 def inicio(request):
     return render(request, 'appMorocha/inicio.html')
 
@@ -9,6 +11,7 @@ def login(request):
     return render(request, 'appMorocha/login.html')
 
 def registrarPedido(request):
+
     if request.method == 'POST':
         db = ConexionDB()
         db.ejecutar("INSERT INTO tb_pedido (fecha_pedido) VALUES (%s)", 
@@ -22,6 +25,7 @@ def registrarPedido(request):
     db = ConexionDB()
     context = {
         'pedidos': db.consultar("""
+    SELECT DISTINCT p.id_pedido, p.fecha_pedido,
     SELECT p.id_pedido, p.fecha_pedido,
            m.num_mesa, c.nombre_cliente, e.nombre_estadopedido
     FROM tb_pedido p
@@ -45,6 +49,7 @@ def eliminarPedido(request, id_pedido):
        
 def detallePedido(request, id_pedido):
     db = ConexionDB()
+    # ── POST: guardar los datos ──────────────────────────
         # ── POST: guardar los datos ──────────────────────────
     if request.method == 'POST':
         # 2 — Insertar el detalle con todas las FK
@@ -73,6 +78,8 @@ def detallePedido(request, id_pedido):
         'estados':   db.consultar("SELECT id_estadopedido, nombre_estadopedido FROM tb_estadopedido"),
     }
     return render(request, 'appMorocha/detallePedido.html', context)
+
+
 
 def usuario(request):
     db = ConexionDB()
