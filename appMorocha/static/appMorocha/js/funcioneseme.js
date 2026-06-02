@@ -27,20 +27,20 @@ $(document).ready(function () {
     Swal.fire({
         title: "Información del Pedido",
         icon: 'info',
-        html: `
-            <table class="table table-bordered">
-                <thead class="table-dark">
-                    <th colspan="2" class="text-center">Vista Previa</th>
-                </thead>
-                <tbody>
-                    <tr><td><strong># Pedido</strong></td><td>${id_pedido}</td></tr>
-                    <tr><td><strong>Fecha</strong></td><td>${fecha}</td></tr>
-                    <tr><td><strong>Mesa</strong></td><td>${mesa}</td></tr>
-                    <tr><td><strong>Cliente</strong></td><td>${cliente}</td></tr>
-                    <tr><td><strong>Estado</strong></td><td>${estado}</td></tr>
-                </tbody>
-            </table>
-        `,
+        html: (() => {
+            const escapeHtml = (v) => String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+            return `
+                <table class="table table-bordered">
+                    <thead class="table-dark"><tr><th colspan="2" class="text-center">Vista Previa</th></tr></thead>
+                    <tbody>
+                        <tr><td><strong># Pedido</strong></td><td>${escapeHtml(id_pedido)}</td></tr>
+                        <tr><td><strong>Fecha</strong></td><td>${escapeHtml(fecha)}</td></tr>
+                        <tr><td><strong>Mesa</strong></td><td>${escapeHtml(mesa)}</td></tr>
+                        <tr><td><strong>Cliente</strong></td><td>${escapeHtml(cliente)}</td></tr>
+                        <tr><td><strong>Estado</strong></td><td>${escapeHtml(estado)}</td></tr>
+                    </tbody>
+                </table>`;
+        })(),
         confirmButtonText: "Cerrar Vista Previa",
         confirmButtonColor: '#0AA34A'
     });
