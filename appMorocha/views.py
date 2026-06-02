@@ -45,7 +45,7 @@ def eliminarPedido(request, id_pedido):
        
 def detallePedido(request, id_pedido):
     db = ConexionDB()
-        # ── POST: guardar los datos ──────────────────────────
+    # ── POST: guardar los datos ──────────────────────────
     if request.method == 'POST':
         # 2 — Insertar el detalle con todas las FK
         db.ejecutar("""
