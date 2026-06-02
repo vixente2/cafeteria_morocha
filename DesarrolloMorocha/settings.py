@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -75,12 +76,12 @@ WSGI_APPLICATION = 'DesarrolloMorocha.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME':   'cafetera_morocha',
-        'USER':   'root',
-        'PASSWORD': '',
-        'HOST':   '127.0.0.1',
-        'PORT':   '3306',
+        'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.sqlite3'),
+        'NAME': os.getenv('DB_NAME', BASE_DIR / 'db.sqlite3'),
+        'USER': os.getenv('DB_USER', ''),
+        'PASSWORD': os.getenv('DB_PASSWORD', ''),
+        'HOST': os.getenv('DB_HOST', ''),
+        'PORT': os.getenv('DB_PORT', ''),
     }
 }
 
@@ -122,9 +123,9 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 DB_CONFIG = {
-    'HOST':'localhost',
-    'USER':'root',
-    'PASSWORD':'',
-    'NAME':'cafetera_morocha',
-    'PORT':3306
+    'HOST': os.getenv('DB_HOST', 'localhost'),
+    'USER': os.getenv('DB_USER', ''),
+    'PASSWORD': os.getenv('DB_PASSWORD', ''),
+    'NAME': os.getenv('DB_NAME', 'cafetera_morocha'),
+    'PORT': int(os.getenv('DB_PORT', '3306'))
 }
