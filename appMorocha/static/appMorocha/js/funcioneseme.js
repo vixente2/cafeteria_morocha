@@ -14,8 +14,7 @@ $(document).ready(function () {
             confirmButtonText: "Sí, Eliminar"
         }).then((result) => {
             if (result.isConfirmed)
-                window.location.href = "/eliminarPedido/" + id_pedido;
-        });
+                window.location.href = "/eliminarPedido/" + id_pedido + "/";
     });
     
     $('.btnVerMas').click(function(){
