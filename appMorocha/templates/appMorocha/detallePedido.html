@@ -71,7 +71,6 @@
               <option value="">Seleccionar</option>
               {% for producto in productos %}
                 <option value="{{ producto.id_producto }}">{{ producto.nombre_producto }} — ${{ producto.precio_producto }}</option>
-                </option>
               {% endfor %}
             </select>
           </div>
