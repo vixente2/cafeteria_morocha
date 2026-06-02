@@ -8,10 +8,9 @@
 <body class="container">
     <h1>Menú de navegación</h1><br>
     <ul>
-        <li><a href="/">Inicio</a></li>
-        <li><a href="/login/">Login</a></li>
-        <li><a href="/registrarPedido/">Registro Pedidos</a></li>        
-        <li><a href="/detallePedido/">Detalle Pedidos</a></li>
+        <li><a href="{% url 'inicio' %}">Inicio</a></li>
+        <li><a href="{% url 'login' %}">Login</a></li>
+        <li><a href="{% url 'registrarPedido' %}">Registro Pedidos</a></li>
     </ul>
     <hr>
     <h1>Estás en la Página de Detalle de Pedidos</h1>
