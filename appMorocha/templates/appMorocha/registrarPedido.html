@@ -63,16 +63,16 @@
                         <td>{{ pedido.fecha_pedido }}</td>
                         <td>
                             <!-- Botón con todos los datos -->
-                            <a class="btn btn-sm btn-success btnVerMas"
+                            <button type="button" class="btn btn-sm btn-success btnVerMas"
                             data-id_pedido="{{ pedido.id_pedido }}"
                             data-fecha="{{ pedido.fecha_pedido }}"
                             data-mesa="{{ pedido.num_mesa }}"
                             data-cliente="{{ pedido.nombre_cliente }}"
                             data-estado="{{ pedido.nombre_estadopedido }}">
                                 Ver más
-                            </a>
-                            <a class="btn btn-sm btn-danger btnEliminar" data-id_pedido="{{ pedido.id_pedido }}"> Eliminar</a>
-                            <a class="btn btn-sm btn-primary"> Editar</a>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-danger btnEliminar" data-id_pedido="{{ pedido.id_pedido }}">Eliminar</button>
+                            <button type="button" class="btn btn-sm btn-primary">Editar</button>
                         </td>                       
                     </tr>
                     {% empty %}
