@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'appMorocha/css/bootstrap.min.css' %}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+
+    <script src="{% static 'appMorocha/js/jquery-4.0.0.min.js'%}"></script>
+    <script src="{% static 'appMorocha/js/bootstrap.min.js' %}"></script>
+    
+    <title>Pedidos</title>
+</head>
+<body class="container">
+    <h1>Menú de navegación</h1><br>
+    <ul>
+        <li><a href="/">Inicio</a></li>
+        <li><a href="/login/">Login</a></li>
+        <li><a href="/registrarPedido/">Registro Pedidos</a></li>        
+        <li><a href="/detallePedido/">Detalle Pedidos</a></li>
+    </ul>
+    <hr>
+    <h1>Estás en la Página de Detalle de Pedidos</h1>
+    <hr>
+<div class="container">
+  <div class="row justify-content-left">
+    <div class="col-md-6 col-lg-5">
+      <div class="form-card">
+ 
+        <h2>Registrar Detalle Pedido {{ id_pedido }}</h2>
+        <p class="subtitulo">Cafetera Morocha · Sistema de órdenes</p>
+ 
+        <form action="{% url 'detallePedido' id_pedido %}" method="post" autocomplete="off">
+          {% csrf_token %}
+ 
+          <!-- Sección 1 -->
+          <div class="section-tag">Información del pedido</div>
+            <input type="hidden" name="id_pedido" value="{{ id_pedido }}">
+
+            <div class="col-6">
+              <label class="form-label" for="id_mesa">Mesa</label>
+              <select class="form-select" name="id_mesa" id="id_mesa" required>
+                <option value="">Seleccionar</option>
+                {% for mesa in mesas %}
+                    <option value="{{ mesa.id_mesa }}">Mesa {{ mesa.num_mesa }}</option>
+                {% endfor %}
+              </select>
+            </div>
+ 
+            <div class="col-6">
+              <label class="form-label" for="id_cliente">Cliente</label>
+              <select class="form-select" name="id_cliente" id="id_cliente" required>
+                <option value="">Seleccionar</option>
+                {% for cliente in clientes %}
+                  <option value="{{ cliente.id_cliente }}">{{ cliente.nombre_cliente }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+ 
+          <hr class="divider"/>
+ 
+          <!-- Sección 2 -->
+          <div class="section-tag">Detalle del pedido</div>
+ 
+          <div class="mb-3">
+            <label class="form-label" for="id_producto">Producto</label>
+            <select class="form-select" name="id_producto" id="id_producto" required>
+              <option value="">Seleccionar</option>
+              {% for producto in productos %}
+                <option value="{{ producto.id_producto }}">{{ producto.nombre_producto }} — ${{ producto.precio_producto }}</option>
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+ 
+          <div class="row g-3 mb-3">
+            <div class="col-6">
+              <label class="form-label" for="id_usuario">Atendido por</label>
+              <select class="form-select" name="id_usuario" id="id_usuario" required>
+                <option value="">Seleccionar</option>
+                {% for usuario in usuarios %}
+                  <option value="{{ usuario.id_usuario }}">{{ usuario.nombre_usuario }}</option>
+                {% endfor %}
+              </select>
+            </div>
+ 
+            <div class="col-6">
+              <label class="form-label" for="id_estadopedido">Estado</label>
+              <select class="form-select" name="id_estadopedido" id="id_estadopedido" required>
+                <option value="">Seleccionar</option>
+                {% for estado in estados %}
+                  <option value="{{ estado.id_estadopedido }}">{{ estado.nombre_estadopedido }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+ 
+          <hr class="divider"/>
+ 
+          <button type="submit" class="btn-registrar">Registrar detalle pedido</button>
+ 
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
