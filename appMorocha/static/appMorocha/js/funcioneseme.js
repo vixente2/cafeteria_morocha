@@ -15,6 +15,8 @@ $(document).ready(function () {
         }).then((result) => {
             if (result.isConfirmed)
                 window.location.href = "/eliminarPedido/" + id_pedido + "/";
+                window.location.href = "/eliminarPedido/" + id_pedido;
+        });
     });
     
     $('.btnVerMas').click(function(){
@@ -41,6 +43,20 @@ $(document).ready(function () {
                     </tbody>
                 </table>`;
         })(),
+        html: `
+            <table class="table table-bordered">
+                <thead class="table-dark">
+                    <th colspan="2" class="text-center">Vista Previa</th>
+                </thead>
+                <tbody>
+                    <tr><td><strong># Pedido</strong></td><td>${id_pedido}</td></tr>
+                    <tr><td><strong>Fecha</strong></td><td>${fecha}</td></tr>
+                    <tr><td><strong>Mesa</strong></td><td>${mesa}</td></tr>
+                    <tr><td><strong>Cliente</strong></td><td>${cliente}</td></tr>
+                    <tr><td><strong>Estado</strong></td><td>${estado}</td></tr>
+                </tbody>
+            </table>
+        `,
         confirmButtonText: "Cerrar Vista Previa",
         confirmButtonColor: '#0AA34A'
     });

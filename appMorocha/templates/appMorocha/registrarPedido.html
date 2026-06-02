@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{% static 'appMorocha/css/bootstrap.min.css' %}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
     <script src="{% static 'appMorocha/js/jquery-4.0.0.min.js'%}"></script>
     <script src="{% static 'appMorocha/js/funcioneseme.js'%}"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -17,6 +18,10 @@
         <li><a href="{% url 'inicio' %}">Inicio</a></li>
         <li><a href="{% url 'login' %}">Login</a></li>
         <li><a href="{% url 'registrarPedido' %}">Registro Pedidos</a></li>
+        <li><a href="/">Inicio</a></li>
+        <li><a href="/login/">Login</a></li>
+        <li><a href="/registrarPedido/">Registro Pedidos</a></li>        
+        <li><a href="/detallePedido/">Detalle Pedidos</a></li>
     </ul>
     <hr>
     <h1>Estás en la Página de Registro de Pedidos</h1>
@@ -64,6 +69,7 @@
                         <td>
                             <!-- Botón con todos los datos -->
                             <button type="button" class="btn btn-sm btn-success btnVerMas"
+                            <a class="btn btn-sm btn-success btnVerMas"
                             data-id_pedido="{{ pedido.id_pedido }}"
                             data-fecha="{{ pedido.fecha_pedido }}"
                             data-mesa="{{ pedido.num_mesa }}"
@@ -73,6 +79,9 @@
                             </button>
                             <button type="button" class="btn btn-sm btn-danger btnEliminar" data-id_pedido="{{ pedido.id_pedido }}">Eliminar</button>
                             <button type="button" class="btn btn-sm btn-primary">Editar</button>
+                            </a>
+                            <a class="btn btn-sm btn-danger btnEliminar" data-id_pedido="{{ pedido.id_pedido }}"> Eliminar</a>
+                            <a class="btn btn-sm btn-primary"> Editar</a>
                         </td>                       
                     </tr>
                     {% empty %}

@@ -26,6 +26,7 @@ def registrarPedido(request):
     context = {
         'pedidos': db.consultar("""
     SELECT DISTINCT p.id_pedido, p.fecha_pedido,
+    SELECT p.id_pedido, p.fecha_pedido,
            m.num_mesa, c.nombre_cliente, e.nombre_estadopedido
     FROM tb_pedido p
     LEFT JOIN tb_detallepedido d ON p.id_pedido = d.id_pedido
@@ -49,6 +50,7 @@ def eliminarPedido(request, id_pedido):
 def detallePedido(request, id_pedido):
     db = ConexionDB()
     # ── POST: guardar los datos ──────────────────────────
+        # ── POST: guardar los datos ──────────────────────────
     if request.method == 'POST':
         # 2 — Insertar el detalle con todas las FK
         db.ejecutar("""
@@ -79,7 +81,6 @@ def detallePedido(request, id_pedido):
 
 
 
-# Programacion de usuario
 def usuario(request):
     db = ConexionDB()
     UsuariosRegistrados = cargarRegistros()
