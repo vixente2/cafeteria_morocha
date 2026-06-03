@@ -1,11 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
+{% extends 'sidebar.html' %}
+{% load static %}
+
+{% block titulo %}login{% endblock %}
+
+{% block contenido %}
+
+<div class="row">
     
-</body>
-</html>
+    <h1>Estás en la Página de login</h1>
+       
+</div>
+
+{% endblock %}
+{% block extra_js %}
+{% endblock %}
