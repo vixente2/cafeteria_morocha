@@ -24,9 +24,8 @@ def registrarPedido(request):
     # ── GET: cargar tabla de pedidos ──────────────────────────
     db = ConexionDB()
     context = {
-        'pedidos': db.consultar("""
+    'pedidos': db.consultar("""
     SELECT DISTINCT p.id_pedido, p.fecha_pedido,
-    SELECT p.id_pedido, p.fecha_pedido,
            m.num_mesa, c.nombre_cliente, e.nombre_estadopedido
     FROM tb_pedido p
     LEFT JOIN tb_detallepedido d ON p.id_pedido = d.id_pedido

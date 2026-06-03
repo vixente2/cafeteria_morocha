@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
     <link rel="stylesheet" href="{% static 'appMorocha/css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script src="{% static 'appMorocha/js/jquery-4.0.0.min.js' %}"></script>
@@ -191,18 +192,20 @@
         </div>
         <nav class="sidebar-menu">
             <div class="menu-label">Principal</div>
-            <a href="/inicio/" class="menu-item {% block nav_inicio %}{% endblock %}">
+            <a href="/" class="menu-item ">
                 <i class="fas fa-home"></i><span>Inicio</span>
             </a>
-            <a href="/usuario/" class="menu-item {% block nav_usuario %}{% endblock %}">
-                <i class="fas fa-users"></i><span>Usuarios</span>
-            </a>
-            <a href="/registrarPedido/" class="menu-item {% block nav_pedido %}{% endblock %}">
-                <i class="fas fa-clipboard-list"></i><span>Pedidos</span>
+            <a href="/registrarPedido/" class="menu-item">
+                <i class="fas fa-clipboard-list"></i><span>Registrar Pedido</span>
             </a>
             <div class="menu-label">Sistema</div>
-            <a href="/login/" class="menu-item {% block nav_login %}{% endblock %}">
+            <a href="/login/" class="menu-item">
                 <i class="fas fa-lock"></i><span>Login</span>
+            </a>
+            </a>
+            <div class="menu-label">Admin</div>
+            <a href="/usuario/" class="menu-item">
+                <i class="fas fa-users"></i><span>Usuarios</span>
             </a>
         </nav>
     </div>
