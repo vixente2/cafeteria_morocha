@@ -102,7 +102,7 @@ def detallePedido(request, id_pedido):
     return render(request, 'appMorocha/detallePedido.html', context)
 
 
-
+# Vistas para la gestión de usuarios
 def usuario(request):
     db = ConexionDB()
     UsuariosRegistrados = cargarRegistros()
@@ -115,7 +115,7 @@ def usuario(request):
         'roles': roles
     })
 
-
+# Cargar usuarios registrados
 def cargarRegistros():
     conexion=ConexionDB()
     sintaxiSQL="""
@@ -131,6 +131,7 @@ def cargarRegistros():
     usuario = conexion.consultar(sintaxiSQL)
     return usuario
 
+# Eliminar usuario
 def eliminarUsuario(request,nombreUsuario):
     conexion=ConexionDB()
     validarRegistro="""
@@ -146,7 +147,8 @@ def eliminarUsuario(request,nombreUsuario):
         return render(request,'appMorocha/usuario.html',{
         "UsuariosRegistrados" : usuarios
         })
-    
+
+ # Guardar usuario
 def procesarUsuario(request):
     db = ConexionDB()
     if(request.method == 'GET'):
@@ -179,3 +181,70 @@ def procesarUsuario(request):
         'roles':  db.consultar("SELECT id_rol, nombre_rol FROM tb_roles"),
     }
     return render(request,'appMorocha/usuario.html',context)
+
+# Ingresar vista para productos
+def ingresarProducto(request):
+    ProductosRegistrados = cargarRegistrosProductos()
+    return render(request, 'appMorocha/ingresarProducto.html', {'ProductosRegistrados': ProductosRegistrados})
+
+# Cargar productos registrados
+def cargarRegistrosProductos():
+    conexion=ConexionDB()
+    sintaxiSQL="""
+        SELECT id_producto, nombre_producto, precio_producto as precio
+        FROM tb_producto
+    """
+    producto = conexion.consultar(sintaxiSQL)
+    return producto
+# Guardar producto
+def procesarProducto(request):
+    if request.method == 'GET':
+        nombreProducto = request.GET.get('txt_nombreproducto')
+        precio = request.GET.get('txt_precio')
+        conexion = ConexionDB()
+        sintaxisValidar = """
+            SELECT * FROM tb_producto WHERE nombre_producto = %s
+        """
+        if conexion.verificar(sintaxisValidar, (nombreProducto,)):
+            contexto = {
+                "msg": "Casi... Existe un Registro asociado",
+                "color": "red"
+            }
+            return render(request, 'appMorocha/ingresarProducto.html', contexto)
+        sintaxisSQL = """
+            INSERT INTO tb_producto(nombre_producto, precio_producto)
+            VALUES (%s, %s)
+        """
+        conexion.ejecutar(sintaxisSQL, (nombreProducto, precio))
+        ProductosRegistrados = cargarRegistrosProductos()
+        contexto = {
+            "msg": "Registro Insertado Correctamente!",
+            "color": "green",
+            "ProductosRegistrados": ProductosRegistrados
+        }
+        return render(request, 'appMorocha/ingresarProducto.html', contexto)
+    return render(request, 'appMorocha/ingresarProducto.html')
+
+# Ingresar vista para mesas
+def ingresarMesa(request):
+    cargarMesas = cargarRegistrosMesas()
+    
+    return render(request, 'appMorocha/ingresarMesa.html', {'cargarMesas': cargarMesas})
+
+# Cargar mesas registradas
+def cargarRegistrosMesas():
+    conexion = ConexionDB()
+    sintaxiSQL = """
+    SELECT
+        m.id_mesa,
+        m.num_mesa,
+        e.nombre_estado
+    FROM tb_mesa m
+    INNER JOIN tb_estadomesa e
+    ON m.id_estadomesa = e.id_estadomesa
+     ORDER BY 
+        FIELD(e.nombre_estado, 'Libre', 'Ocupado', 'Mantenimiento'),
+        m.id_mesa
+    """
+    mesa = conexion.consultar(sintaxiSQL)
+    return mesa

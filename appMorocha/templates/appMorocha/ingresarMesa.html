@@ -1,0 +1,101 @@
+{% extends 'sidebar.html' %}
+{% load static %}
+
+{% block titulo %}Mesas{% endblock %}
+
+{% block contenido %}
+
+
+<div class="row">
+
+    <h1>Estas en la Pagina de Mesas</h1>
+
+    <div class="container">
+        <div class="row">
+
+            {% for mesa in cargarMesas %}
+            <div class="col-md-4 mb-3">
+
+                <div class="card text-white
+                    {% if mesa.nombre_estado == 'Libre' %}
+                        bg-success
+                    {% elif mesa.nombre_estado == 'Ocupado' %}
+                        bg-danger
+                    {% elif mesa.nombre_estado == 'Mantenimiento' %}
+                        bg-warning
+                    {% else %}
+                        bg-secondary
+                    {% endif %}
+                ">
+
+                    <div class="card-header">
+                        Mesa {{ mesa.num_mesa }}
+                    </div>
+
+                    <div class="card-body">
+
+                        <h5 class="card-title">
+                            Estado: {{ mesa.nombre_estado }}
+                        </h5>
+
+                        <div class="d-flex gap-2 flex-wrap">
+
+                            <button
+                                class="btn btn-success btnLibre"
+                                data-id="{{ mesa.id_mesa }}">
+                                Libre
+                            </button>
+
+                            <button
+                                class="btn btn-danger btnOcupado"
+                                data-id="{{ mesa.id_mesa }}">
+                                Ocupado
+                            </button>
+
+                            <button
+                                class="btn btn-warning btnMantenimiento"
+                                data-id="{{ mesa.id_mesa }}">
+                                Mantenimiento
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+            {% endfor %}
+
+            {% if user.is_superuser %}
+            <div class="col-md-4 mb-3">
+
+                <div class="card border-primary h-100">
+
+                    <div class="card-body text-center d-flex flex-column justify-content-center">
+
+                        <h1 class="display-3">+</h1>
+
+                        <h4>Agregar Mesa</h4>
+
+                        <a href="{% url 'registrarMesa' %}"
+                           class="btn btn-primary mt-3">
+                            Nueva Mesa
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+
+</div>
+
+    {% endblock %}
+    {% block extra_js %}
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    {% endblock %}
