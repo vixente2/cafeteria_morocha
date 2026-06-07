@@ -10,6 +10,29 @@ def inicio(request):
 def login(request):
     return render(request, 'appMorocha/login.html')
 
+def estadoPedido(request):
+    cargarPedidos = cargarRegistrosPedidos()
+    return render(request, 'appMorocha/estadoPedido.html', {'cargarPedidos': cargarPedidos})
+
+def cargarRegistrosPedidos():
+    conexion=ConexionDB()
+    sintaxiSQL="""
+    SELECT DISTINCT p.id_pedido, p.fecha_pedido,
+           m.num_mesa, c.nombre_cliente, e.nombre_estadopedido
+    FROM tb_pedido p
+    LEFT JOIN tb_detallepedido d ON p.id_pedido = d.id_pedido
+    LEFT JOIN tb_mesa m          ON d.id_mesa = m.id_mesa
+    LEFT JOIN tb_cliente c       ON d.id_cliente = c.id_cliente
+    LEFT JOIN tb_estadopedido e  ON d.id_estadopedido = e.id_estadopedido
+    ORDER BY 
+        FIELD(e.nombre_estadopedido, 'Preparando', 'Espera', 'Listo', 'Finalizado'),
+        p.id_pedido DESC
+    """
+    pedidos = conexion.consultar(sintaxiSQL)
+    return pedidos
+
+
+
 def registrarPedido(request):
 
     if request.method == 'POST':
@@ -91,6 +114,7 @@ def usuario(request):
         'UsuariosRegistrados': UsuariosRegistrados,
         'roles': roles
     })
+
 
 def cargarRegistros():
     conexion=ConexionDB()
