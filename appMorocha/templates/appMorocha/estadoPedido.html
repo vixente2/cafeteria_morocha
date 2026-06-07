@@ -1,0 +1,86 @@
+{% extends 'sidebar.html' %}
+{% load static %}
+
+{% block titulo %}Estado del Pedido{% endblock %}
+
+{% block contenido %}
+
+<div class="row">
+
+    <h1>Estás en la Página de estado pedido</h1>
+
+    <div class="container">
+        <div class="row">
+            {% if cargarPedidos %}
+            <div class="col-12">
+                <h4>Pedidos Registrados</h4>
+            </div>
+            {% for pedido in cargarPedidos %}
+            <div class="col-md-4 mb-3">
+
+                <div class="card text-white
+                {% if pedido.nombre_estadopedido == 'Espera' %}
+                 bg-warning
+                 {% elif pedido.nombre_estadopedido == 'Preparando' %}
+                  bg-primary
+                 {% elif pedido.nombre_estadopedido == 'Listo' %}
+                  bg-success
+                 {% elif pedido.nombre_estadopedido == 'Finalizado' %}
+                  bg-danger
+                 {% else %}
+                  bg-secondary
+                {% endif %}
+                ">
+
+                    <div class="card-header">
+                        Mesa {{ pedido.num_mesa }}
+                    </div>
+
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            Cliente: {{ pedido.nombre_cliente }}
+                        </h5>
+
+                        <p class="card-text">
+                            Estado: {{ pedido.nombre_estadopedido }}
+                        </p>
+
+                        <div class="d-flex gap-2 flex-wrap">
+
+                            <button class="btn btn-light btnEspera" data-id="{{ pedido.id_pedido }}">
+                                Espera
+                            </button>
+
+                            <button class="btn btn-dark btnPreparando" data-id="{{ pedido.id_pedido }}">
+                                Preparando
+                            </button>
+
+                            <button class="btn btn-success btnListo" data-id="{{ pedido.id_pedido }}">
+                                Listo
+                            </button>
+
+                            <button class="btn btn-danger btnFinalizado" data-id="{{ pedido.id_pedido }}">
+                                Finalizado
+                            </button>
+
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="alert alert-danger">
+                    No existen pedidos.
+                </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+{% block extra_js %}
+{% endblock %}
