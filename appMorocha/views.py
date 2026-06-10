@@ -65,11 +65,15 @@ def cargarRegistrosPedidos():
     conexion = ConexionDB()
     sintaxiSQL = """
     SELECT p.id_pedido, p.fecha_pedido,
-           m.num_mesa, c.nombre_cliente, e.nombre_estadopedido
+           m.num_mesa, c.nombre_cliente, e.nombre_estadopedido,
+           COALESCE(SUM(d.cantidad * pr.precio_producto), 0) AS total
     FROM tb_pedido p
-    LEFT JOIN tb_mesa         m ON p.id_mesa         = m.id_mesa
-    LEFT JOIN tb_cliente      c ON p.id_cliente      = c.id_cliente
-    LEFT JOIN tb_estadopedido e ON p.id_estadopedido = e.id_estadopedido
+    LEFT JOIN tb_mesa          m  ON p.id_mesa         = m.id_mesa
+    LEFT JOIN tb_cliente       c  ON p.id_cliente      = c.id_cliente
+    LEFT JOIN tb_estadopedido  e  ON p.id_estadopedido = e.id_estadopedido
+    LEFT JOIN tb_detallepedido d  ON p.id_pedido       = d.id_pedido
+    LEFT JOIN tb_producto      pr ON d.id_producto     = pr.id_producto
+    GROUP BY p.id_pedido, p.fecha_pedido, m.num_mesa, c.nombre_cliente, e.nombre_estadopedido
     ORDER BY 
         FIELD(e.nombre_estadopedido, 'Preparando', 'Espera', 'Listo', 'Finalizado'),
         p.id_pedido DESC
@@ -83,7 +87,9 @@ def registrarPedido(request):
     if login_requerido(request):
         return redirect('login')
     db = ConexionDB()
+
     if request.method == 'POST':
+
         # ── AJAX: agregar producto al detalle ──
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             data = json.loads(request.body)
@@ -92,7 +98,6 @@ def registrarPedido(request):
                 VALUES (%s, %s, %s)
             """, [data['id_pedido'], data['id_producto'], data['cantidad']])
 
-            # Devolver tabla actualizada
             detalles = db.consultar("""
                 SELECT p.nombre_producto, d.cantidad, p.precio_producto,
                        (d.cantidad * p.precio_producto) as subtotal
@@ -133,35 +138,66 @@ def registrarPedido(request):
         """, [id_cliente])
         id_pedido = pedido[0]['id_pedido']
 
+        # Marcar la mesa como Ocupada
+        estado_ocupado = db.consultar(
+            "SELECT id_estadomesa FROM tb_estadomesa WHERE nombre_estado = 'Ocupado' LIMIT 1"
+        )
+        if estado_ocupado:
+            db.ejecutar(
+                "UPDATE tb_mesa SET id_estadomesa = %s WHERE id_mesa = %s",
+                [estado_ocupado[0]['id_estadomesa'], request.POST['id_mesa']]
+            )
+
+        # ── Redirigir al GET con el id_pedido en la URL ──
+        return redirect(f"/registrarPedido/?id_pedido={id_pedido}")
+
+    # ── GET ──
+    id_pedido = request.GET.get('id_pedido')
+    context = {
+        'mesas': db.consultar("""
+            SELECT m.id_mesa, m.num_mesa, e.nombre_estado
+            FROM tb_mesa m
+            INNER JOIN tb_estadomesa e ON m.id_estadomesa = e.id_estadomesa
+            ORDER BY m.num_mesa
+        """),
+        'usuarios': db.consultar("SELECT id_usuario, nombre_usuario FROM tb_usuario"),
+    }
+
+    if id_pedido:
+        id_pedido = int(id_pedido)
         productos = db.consultar(
             "SELECT id_producto, nombre_producto, precio_producto FROM tb_producto"
         )
-        return render(request, 'appMorocha/registrarPedido.html', {
-            'id_pedido': id_pedido,
-            'productos': productos,
-        })
+        context['id_pedido'] = id_pedido
+        context['productos'] = productos
 
-    # GET
-    context = {
-        'mesas': db.consultar("""
-        SELECT m.id_mesa, m.num_mesa, e.nombre_estado
-        FROM tb_mesa m
-        INNER JOIN tb_estadomesa e ON m.id_estadomesa = e.id_estadomesa
-        ORDER BY m.num_mesa
-    """),
-    'usuarios': db.consultar("SELECT id_usuario, nombre_usuario FROM tb_usuario"),
-        'usuarios': db.consultar("SELECT id_usuario, nombre_usuario FROM tb_usuario"),
-    }
     return render(request, 'appMorocha/registrarPedido.html', context)
 
 def eliminarPedido(request, id_pedido):
     if request.method == 'GET':
         db = ConexionDB()
-        # Primero eliminar los detalles asociados al pedido
+
+        # Obtener la mesa antes de eliminar
+        pedido = db.consultar(
+            "SELECT id_mesa FROM tb_pedido WHERE id_pedido = %s LIMIT 1",
+            [id_pedido]
+        )
+
         db.ejecutar("DELETE FROM tb_detallepedido WHERE id_pedido = %s", [id_pedido])
-        # Luego eliminar el pedido
         db.ejecutar("DELETE FROM tb_pedido WHERE id_pedido = %s", [id_pedido])
-        return redirect('registrarPedido')
+
+        # Liberar la mesa
+        if pedido and pedido[0]['id_mesa']:
+            estado_libre = db.consultar(
+                "SELECT id_estadomesa FROM tb_estadomesa WHERE nombre_estado = 'Libre' LIMIT 1"
+            )
+            if estado_libre:
+                db.ejecutar(
+                    "UPDATE tb_mesa SET id_estadomesa = %s WHERE id_mesa = %s",
+                    [estado_libre[0]['id_estadomesa'], pedido[0]['id_mesa']]
+                )
+
+        return redirect('listarPedidos')
        
 def detallePedido(request, id_pedido):
     db = ConexionDB()
@@ -188,6 +224,8 @@ def detallePedido(request, id_pedido):
 # cambiar estado de los pedidos
 def actualizarEstadoPedido(request, id_pedido, estado):
     db = ConexionDB()
+
+    # Actualizar estado del pedido
     resultado = db.consultar(
         "SELECT id_estadopedido FROM tb_estadopedido WHERE nombre_estadopedido = %s LIMIT 1",
         [estado]
@@ -197,13 +235,39 @@ def actualizarEstadoPedido(request, id_pedido, estado):
             "UPDATE tb_pedido SET id_estadopedido = %s WHERE id_pedido = %s",
             [resultado[0]['id_estadopedido'], id_pedido]
         )
+
+    # Obtener la mesa asociada a este pedido
+    pedido = db.consultar(
+        "SELECT id_mesa FROM tb_pedido WHERE id_pedido = %s LIMIT 1",
+        [id_pedido]
+    )
+
+    if pedido and pedido[0]['id_mesa']:
+        id_mesa = pedido[0]['id_mesa']
+
+        # Determinar el nuevo estado de la mesa
+        if estado in ['Finalizado', 'Listo']:
+            nombre_estado_mesa = 'Libre'
+        else:  # Preparando, Espera
+            nombre_estado_mesa = 'Ocupado'
+
+        estado_mesa = db.consultar(
+            "SELECT id_estadomesa FROM tb_estadomesa WHERE nombre_estado = %s LIMIT 1",
+            [nombre_estado_mesa]
+        )
+        if estado_mesa:
+            db.ejecutar(
+                "UPDATE tb_mesa SET id_estadomesa = %s WHERE id_mesa = %s",
+                [estado_mesa[0]['id_estadomesa'], id_mesa]
+            )
+
     return redirect('estadoPedido')
 
 def listarPedidos(request):
     if login_requerido(request):
         return redirect('login')
     pedidos = cargarRegistrosPedidos()
-    return render(request, 'appMorocha/listaPedidos.html', {'cargarPedidos': pedidos})
+    return render(request, 'appMorocha/listarPedidos.html', {'cargarPedidos': pedidos})
 
 # Vistas para la gestión de usuarios
 def usuario(request):
