@@ -1,16 +1,95 @@
-{% extends 'sidebar.html' %}
 {% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <title>Login - Cafetera Morocha</title>
+    <style>
+        :root { --primary: #5f4a04; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-card {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 2px 0 15px rgba(0,0,0,0.1);
+            padding: 40px 36px;
+            width: 100%;
+            max-width: 380px;
+        }
+        .login-card h2 {
+            color: var(--primary);
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .login-card p {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 24px;
+        }
+        .form-label { font-size: 13px; font-weight: 600; }
+        .form-control {
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            padding: 10px 14px;
+            font-size: 14px;
+        }
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(230,57,70,0.15);
+        }
+        .btn-login {
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 6px;
+            cursor: pointer;
+        }
+        .msg {
+            font-size: 13px;
+            margin-bottom: 14px;
+            padding: 10px 14px;
+            border-radius: 8px;
+        }
+        .red { background: rgba(230,57,70,0.1); color: var(--primary); }
+        .green { background: rgba(40,167,69,0.1); color: #28a745; }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <h2>Cafetera Morocha</h2>
+        <p>Ingresa tus credenciales</p>
 
-{% block titulo %}login{% endblock %}
+        {% if msg %}
+            <div class="msg {{ color }}">{{ msg }}</div>
+        {% endif %}
 
-{% block contenido %}
-
-<div class="row">
-    
-    <h1>Estás en la Página de login</h1>
-       
-</div>
-
-{% endblock %}
-{% block extra_js %}
-{% endblock %}
+        <form method="POST" action="{% url 'login' %}">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label">Usuario</label>
+                <input type="text" name="txt_usuario" class="form-control" placeholder="Nombre de usuario" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Contraseña</label>
+                <input type="password" name="txt_clave" class="form-control" placeholder="Contraseña" required>
+            </div>
+            <button type="submit" class="btn-login">Ingresar</button>
+        </form>
+    </div>
+</body>
+</html>

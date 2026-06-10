@@ -5,12 +5,53 @@ import json
 # Create your views here.
 
 def inicio(request):
+    if login_requerido(request):
+        return redirect('login')    
     return render(request, 'appMorocha/inicio.html')
 
 def login(request):
+    if request.method == 'POST':
+        nombre_usuario = request.POST.get('txt_usuario')
+        clave = request.POST.get('txt_clave')
+        
+        conexion = ConexionDB()
+        consulta = """
+            SELECT u.id_usuario, u.nombre_usuario, r.nombre_rol
+            FROM tb_usuario u
+            INNER JOIN tb_roles r ON u.id_rol = r.id_rol
+            WHERE u.nombre_usuario = %s AND u.clave = %s
+        """
+        resultado = conexion.consultar(consulta, (nombre_usuario, clave))
+        
+        if resultado:
+            usuario = resultado[0]
+            # comparamos los datos como cookies para no tener que crear las tablas migratorias de django en nuestra bd.
+            res = redirect('inicio')        # guardar el redirect en "res"
+            res.set_cookie('id_usuario', usuario['id_usuario'])
+            res.set_cookie('nombre_usuario', usuario['nombre_usuario'])
+            res.set_cookie('rol', usuario['nombre_rol'])
+            return res  # redirige al inicio si es correcto
+        else:
+            return render(request, 'appMorocha/login.html', {
+                'msg': 'Usuario o contraseña incorrectos',
+                'color': 'red'
+            })
+    
     return render(request, 'appMorocha/login.html')
 
+def login_requerido(request):
+    return not request.COOKIES.get('id_usuario')
+
+def logout(request):
+    res = redirect('login')
+    res.delete_cookie('id_usuario')
+    res.delete_cookie('nombre_usuario')
+    res.delete_cookie('rol')
+    return res
+
 def estadoPedido(request):
+    if login_requerido(request):
+        return redirect('login')
     cargarPedidos = cargarRegistrosPedidos()
     return render(request, 'appMorocha/estadoPedido.html', {'cargarPedidos': cargarPedidos})
 
@@ -35,8 +76,9 @@ def cargarRegistrosPedidos():
 
 
 def registrarPedido(request):
+    if login_requerido(request):
+        return redirect('login')
     db = ConexionDB()
-
     if request.method == 'POST':
         # ── AJAX: agregar producto al detalle ──
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -136,6 +178,8 @@ def detallePedido(request, id_pedido):
 
 # Vistas para la gestión de usuarios
 def usuario(request):
+    if login_requerido(request):
+        return redirect('login')    
     db = ConexionDB()
     UsuariosRegistrados = cargarRegistros()
     roles = db.consultar("""
@@ -216,6 +260,8 @@ def procesarUsuario(request):
 
 # Ingresar vista para productos
 def ingresarProducto(request):
+    if login_requerido(request):
+        return redirect('login')    
     ProductosRegistrados = cargarRegistrosProductos()
     return render(request, 'appMorocha/ingresarProducto.html', {'ProductosRegistrados': ProductosRegistrados})
 
@@ -257,8 +303,49 @@ def procesarProducto(request):
         return render(request, 'appMorocha/ingresarProducto.html', contexto)
     return render(request, 'appMorocha/ingresarProducto.html')
 
+def editarProducto(request):
+    if request.method == 'GET':
+        id_producto    = request.GET.get('id_producto')
+        nombreProducto = request.GET.get('txt_nombreproducto')
+        precio         = request.GET.get('txt_precio')
+        conexion = ConexionDB()
+
+        duplicado = conexion.consultar(
+            "SELECT * FROM tb_producto WHERE nombre_producto = %s AND id_producto != %s",
+            (nombreProducto, id_producto)
+        )
+        if duplicado:
+            contexto = {
+                "msg": "Ese nombre ya pertenece a otro producto.",
+                "color": "red",
+                "ProductosRegistrados": cargarRegistrosProductos()
+            }
+            return render(request, 'appMorocha/ingresarProducto.html', contexto)
+
+        conexion.ejecutar(
+            "UPDATE tb_producto SET nombre_producto = %s, precio_producto = %s WHERE id_producto = %s",
+            (nombreProducto, precio, id_producto)
+        )
+        contexto = {
+            "msg": "Producto actualizado correctamente!",
+            "color": "green",
+            "ProductosRegistrados": cargarRegistrosProductos()
+        }
+        return render(request, 'appMorocha/ingresarProducto.html', contexto)
+    return redirect('ingresarProducto')
+
+
+def eliminarProducto(request, id_producto):
+    conexion = ConexionDB()
+    conexion.ejecutar(
+        "DELETE FROM tb_producto WHERE id_producto = %s", (id_producto,)
+    )
+    return redirect('ingresarProducto')
+
 # Ingresar vista para mesas
 def ingresarMesa(request):
+    if login_requerido(request):
+        return redirect('login')    
     cargarMesas = cargarRegistrosMesas()
     
     return render(request, 'appMorocha/ingresarMesa.html', {'cargarMesas': cargarMesas})
