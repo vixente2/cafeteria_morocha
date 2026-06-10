@@ -21,7 +21,7 @@
                 <select class="form-select" name="id_mesa" id="id_mesa" required>
                     <option value="">-- Seleccione una mesa --</option>
                     {% for mesa in mesas %}
-                    <option value="{{ mesa.id_mesa }}" {% if mesa.nombre_estado == "Ocupado" %}disabled{% endif %}>
+                    <option value="{{ mesa.id_mesa }}" {% if mesa.nombre_estado == "Ocupado" or mesa.nombre_estado == "Mantenimiento" %}disabled{% endif %}>
                         Mesa {{ mesa.num_mesa }}
                         {% if mesa.nombre_estado == "Ocupado" %} — Ocupada
                         {% elif mesa.nombre_estado == "Mantenimiento" %} — Mantenimiento
@@ -61,8 +61,8 @@
     const URL_ESTADO = "{% url 'estadoPedido' %}";
     const productos = [
         {% for p in productos %}
-    { id: { { p.id_producto } }, nombre: "{{ p.nombre_producto }}", precio: { { p.precio_producto } } },
-    {% endfor %}
+            { id: {{ p.id_producto }}, nombre: "{{ p.nombre_producto }}", precio: {{ p.precio_producto }} },
+        {% endfor %}
     ];
 </script>
 <script src="{% static 'appMorocha/js/registrarPedido.js' %}"></script>

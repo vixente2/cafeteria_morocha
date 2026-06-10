@@ -35,21 +35,15 @@
                     </span>
                 </td>
                 <td class="d-flex gap-1">
-                    <button type="button" class="btn btn-sm btn-success btnVerMas"
-                        data-id_pedido="{{ pedido.id_pedido }}"
-                        data-fecha="{{ pedido.fecha_pedido }}"
-                        data-mesa="{{ pedido.num_mesa }}"
-                        data-cliente="{{ pedido.nombre_cliente }}"
-                        data-estado="{{ pedido.nombre_estadopedido }}">
-                        Ver más
-                    </button>
                     <button type="button" class="btn btn-sm btn-danger btnEliminar"
                         data-id_pedido="{{ pedido.id_pedido }}">
                         Eliminar
                     </button>
-                    <button type="button" class="btn btn-sm btn-primary btnEditar"
-                        data-id_pedido="{{ pedido.id_pedido }}">
-                        Editar
+                    <button type="button" class="btn btn-sm btn-info btnVerMas"
+                        data-id_pedido="{{ pedido.id_pedido }}" data-fecha="{{ pedido.fecha_pedido }}"
+                        data-mesa="{{ pedido.num_mesa }}" data-cliente="{{ pedido.nombre_cliente }}"
+                        data-estado="{{ pedido.nombre_estadopedido }}">
+                        Ver más
                     </button>
                 </td>
             </tr>
