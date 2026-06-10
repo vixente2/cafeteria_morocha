@@ -175,6 +175,19 @@ def detallePedido(request, id_pedido):
     }
     return render(request, 'appMorocha/detallePedido.html', context)
 
+# cambiar estado de los pedidos
+def actualizarEstadoPedido(request, id_pedido, estado):
+    db = ConexionDB()
+    resultado = db.consultar(
+        "SELECT id_estadopedido FROM tb_estadopedido WHERE nombre_estadopedido = %s LIMIT 1",
+        [estado]
+    )
+    if resultado:
+        db.ejecutar(
+            "UPDATE tb_pedido SET id_estadopedido = %s WHERE id_pedido = %s",
+            [resultado[0]['id_estadopedido'], id_pedido]
+        )
+    return redirect('estadoPedido')
 
 # Vistas para la gestión de usuarios
 def usuario(request):

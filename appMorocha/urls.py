@@ -14,6 +14,8 @@ urlpatterns = [
     # Acciones para Pedidos
     path('detallePedido/<int:id_pedido>/',views.detallePedido, name='detallePedido'),
     path('eliminarPedido/<int:id_pedido>/', views.eliminarPedido, name='eliminarPedido'),
+    path('actualizar-estado/<int:id_pedido>/<str:estado>/', views.actualizarEstadoPedido, name='actualizarEstadoPedido'),
+
     # Acciones para Usuario
     path('procesarUsuario/',views.procesarUsuario),
     path('eliminarUsuario/<str:nombreUsuario>/',views.eliminarUsuario,name='eliminarUsuario'),
