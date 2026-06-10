@@ -191,6 +191,8 @@ def actualizarEstadoPedido(request, id_pedido, estado):
     return redirect('estadoPedido')
 
 def listarPedidos(request):
+    if login_requerido(request):
+        return redirect('login')
     pedidos = cargarRegistrosPedidos()
     return render(request, 'appMorocha/listaPedidos.html', {'cargarPedidos': pedidos})
 
