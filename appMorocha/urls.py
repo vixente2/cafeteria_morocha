@@ -11,6 +11,7 @@ urlpatterns = [
     path('registrarPedido/',views.registrarPedido, name='registrarPedido'),
     path('ingresarProducto/',views.ingresarProducto, name='ingresarProducto'),
     path('ingresarMesa/',views.ingresarMesa, name='ingresarMesa'),
+    path('listarPedidos/',views.listarPedidos, name='listarPedidos'),
     # Acciones para Pedidos
     path('detallePedido/<int:id_pedido>/',views.detallePedido, name='detallePedido'),
     path('eliminarPedido/<int:id_pedido>/', views.eliminarPedido, name='eliminarPedido'),
@@ -23,7 +24,8 @@ urlpatterns = [
     # Acciones para Productos
     path('procesarProducto/',views.procesarProducto),
     path('editarProducto/',                      views.editarProducto,    name='editarProducto'),
-    path('eliminarProducto/<int:id_producto>/',  views.eliminarProducto,  name='eliminarProducto')
-   
+    path('eliminarProducto/<int:id_producto>/',  views.eliminarProducto,  name='eliminarProducto'),
+   # Acciones para Mesa
+    path('editarMesa/',views.editarMesa),
 
 ]

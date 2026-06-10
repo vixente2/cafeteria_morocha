@@ -189,6 +189,10 @@ def actualizarEstadoPedido(request, id_pedido, estado):
         )
     return redirect('estadoPedido')
 
+def listarPedidos(request):
+    pedidos = cargarRegistrosPedidos()
+    return render(request, 'appMorocha/listaPedidos.html', {'cargarPedidos': pedidos})
+
 # Vistas para la gestión de usuarios
 def usuario(request):
     if login_requerido(request):
@@ -418,3 +422,16 @@ def cargarRegistrosMesas():
     """
     mesa = conexion.consultar(sintaxiSQL)
     return mesa
+
+# Editar mesa
+def editarMesa(request):
+    if request.method == 'GET':
+        id_mesa = request.GET.get('id_mesa')
+        estado = request.GET.get('estado')
+        conexion = ConexionDB()
+        conexion.ejecutar(
+            "UPDATE tb_mesa SET id_estadomesa = %s WHERE id_mesa = %s",
+            (estado, id_mesa)
+        )
+        return redirect('ingresarMesa')
+    return redirect('ingresarMesa')
