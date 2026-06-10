@@ -18,6 +18,7 @@ urlpatterns = [
 
     # Acciones para Usuario
     path('procesarUsuario/',views.procesarUsuario),
+    path('editarUsuario/', views.editarUsuario, name='editarUsuario'),
     path('eliminarUsuario/<str:nombreUsuario>/',views.eliminarUsuario,name='eliminarUsuario'),
     # Acciones para Productos
     path('procesarProducto/',views.procesarProducto),

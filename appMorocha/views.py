@@ -220,23 +220,6 @@ def cargarRegistros():
     usuario = conexion.consultar(sintaxiSQL)
     return usuario
 
-# Eliminar usuario
-def eliminarUsuario(request,nombreUsuario):
-    conexion=ConexionDB()
-    validarRegistro="""
-        select * from tb_usuario where nombre_usuario = %s
-    """
-    if(conexion.consultar(validarRegistro,(nombreUsuario,))):
-        #Existe un registro
-        consultaEliminar="""
-            delete from tb_usuario  where nombre_usuario = %s
-        """
-        conexion.ejecutar(consultaEliminar,(nombreUsuario,))
-        usuarios = cargarRegistros()
-        return render(request,'appMorocha/usuario.html',{
-        "UsuariosRegistrados" : usuarios
-        })
-
  # Guardar usuario
 def procesarUsuario(request):
     db = ConexionDB()
@@ -270,6 +253,61 @@ def procesarUsuario(request):
         'roles':  db.consultar("SELECT id_rol, nombre_rol FROM tb_roles"),
     }
     return render(request,'appMorocha/usuario.html',context)
+
+# Eliminar usuario
+def eliminarUsuario(request,nombreUsuario):
+    conexion=ConexionDB()
+    validarRegistro="""
+        select * from tb_usuario where nombre_usuario = %s
+    """
+    if(conexion.consultar(validarRegistro,(nombreUsuario,))):
+        #Existe un registro
+        consultaEliminar="""
+            delete from tb_usuario  where nombre_usuario = %s
+        """
+        conexion.ejecutar(consultaEliminar,(nombreUsuario,))
+        usuarios = cargarRegistros()
+        return render(request,'appMorocha/usuario.html',{
+        "UsuariosRegistrados" : usuarios
+        })
+    
+# Editar usuario
+def editarUsuario(request):
+    if request.method == 'GET':
+        id_usuario    = request.GET.get('id_usuario')
+        nombreUsuario = request.GET.get('txt_nombreusuario')
+        clave         = request.GET.get('txt_clave')
+        rol           = request.GET.get('txt_rol')
+        conexion = ConexionDB()
+
+        # Verificar que el nombre no lo use otro usuario
+        duplicado = conexion.consultar(
+            "SELECT * FROM tb_usuario WHERE nombre_usuario = %s AND id_usuario != %s",
+            (nombreUsuario, id_usuario)
+        )
+        if duplicado:
+            usuarios = cargarRegistros()
+            roles = conexion.consultar("SELECT id_rol, nombre_rol FROM tb_roles")
+            return render(request, 'appMorocha/usuario.html', {
+                'msg': 'Ese nombre de usuario ya está en uso.',
+                'color': 'red',
+                'UsuariosRegistrados': usuarios,
+                'roles': roles
+            })
+
+        conexion.ejecutar(
+            "UPDATE tb_usuario SET nombre_usuario = %s, clave = %s, id_rol = %s WHERE id_usuario = %s",
+            (nombreUsuario, clave, rol, id_usuario)
+        )
+        usuarios = cargarRegistros()
+        roles = conexion.consultar("SELECT id_rol, nombre_rol FROM tb_roles")
+        return render(request, 'appMorocha/usuario.html', {
+            'msg': 'Usuario actualizado correctamente!',
+            'color': 'green',
+            'UsuariosRegistrados': usuarios,
+            'roles': roles
+        })
+    return redirect('usuario')
 
 # Ingresar vista para productos
 def ingresarProducto(request):
