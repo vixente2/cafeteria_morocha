@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse,  JsonResponse
+from django.views.decorators.http import require_POST
 from .db import ConexionDB
 import json
 # Create your views here.
@@ -424,17 +425,16 @@ def cargarRegistrosMesas():
     return mesa
 
 # Editar mesa
+@require_POST
 def editarMesa(request):
-    if request.method == 'POST':
-        id_mesa = request.POST.get('id_mesa')
-        estado = request.POST.get('estado')
-        estados_permitidos = {'1', '2', '3'}
-        if not (id_mesa and id_mesa.isdigit() and estado in estados_permitidos):
-            return redirect('ingresarMesa')
-        conexion = ConexionDB()
-        conexion.ejecutar(
-            "UPDATE tb_mesa SET id_estadomesa = %s WHERE id_mesa = %s",
-            (estado, id_mesa)
-        )
+    id_mesa = request.POST.get('id_mesa')
+    estado = request.POST.get('estado')
+    estados_permitidos = {'1', '2', '3'}
+    if not (id_mesa and id_mesa.isdigit() and estado in estados_permitidos):
         return redirect('ingresarMesa')
+    conexion = ConexionDB()
+    conexion.ejecutar(
+        "UPDATE tb_mesa SET id_estadomesa = %s WHERE id_mesa = %s",
+        (estado, id_mesa)
+    )
     return redirect('ingresarMesa')
