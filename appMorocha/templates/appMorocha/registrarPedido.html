@@ -13,7 +13,7 @@
 
             <div class="mb-3">
                 <label class="form-label" for="nombre_cliente">Nombre Cliente</label>
-                <input type="text" class="form-control" name="nombre_cliente" id="nombre_cliente" required/>
+                <input type="text" class="form-control" name="nombre_cliente" id="nombre_cliente" required />
             </div>
 
             <div class="mb-3">
@@ -21,7 +21,12 @@
                 <select class="form-select" name="id_mesa" id="id_mesa" required>
                     <option value="">-- Seleccione una mesa --</option>
                     {% for mesa in mesas %}
-                        <option value="{{ mesa.id_mesa }}">Mesa {{ mesa.num_mesa }}</option>
+                    <option value="{{ mesa.id_mesa }}" {% if mesa.nombre_estado == "Ocupado" %}disabled{% endif %}>
+                        Mesa {{ mesa.num_mesa }}
+                        {% if mesa.nombre_estado == "Ocupado" %} — Ocupada
+                        {% elif mesa.nombre_estado == "Mantenimiento" %} — Mantenimiento
+                        {% endif %}
+                    </option>
                     {% endfor %}
                 </select>
             </div>
@@ -31,7 +36,7 @@
                 <select class="form-select" name="id_usuario" id="id_usuario" required>
                     <option value="">-- Seleccione un usuario --</option>
                     {% for usuario in usuarios %}
-                        <option value="{{ usuario.id_usuario }}">{{ usuario.nombre_usuario }}</option>
+                    <option value="{{ usuario.id_usuario }}">{{ usuario.nombre_usuario }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -56,8 +61,8 @@
     const URL_ESTADO = "{% url 'estadoPedido' %}";
     const productos = [
         {% for p in productos %}
-            { id: {{ p.id_producto }}, nombre: "{{ p.nombre_producto }}", precio: {{ p.precio_producto }} },
-        {% endfor %}
+    { id: { { p.id_producto } }, nombre: "{{ p.nombre_producto }}", precio: { { p.precio_producto } } },
+    {% endfor %}
     ];
 </script>
 <script src="{% static 'appMorocha/js/registrarPedido.js' %}"></script>
