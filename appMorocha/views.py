@@ -153,28 +153,9 @@ def eliminarPedido(request, id_pedido):
         db.ejecutar("DELETE FROM tb_pedido WHERE id_pedido = %s", [id_pedido])
         return redirect('registrarPedido')
        
-def detallePedido(request, id_pedido):
-    db = ConexionDB()
-
-    if request.method == 'POST':
-        db.ejecutar("""
-            INSERT INTO tb_detallepedido 
-                (id_pedido, id_producto, cantidad)
-            VALUES (%s, %s, %s)
-        """, [
-            id_pedido,
-            request.POST['id_producto'],
-            request.POST['cantidad'],
-        ])
-
-        return redirect('detallePedido', id_pedido=id_pedido)
-
-    context = {
-        'id_pedido':  id_pedido,
-        'productos':  db.consultar("SELECT id_producto, nombre_producto, precio_producto FROM tb_producto"),
-    }
-    return render(request, 'appMorocha/detallePedido.html', context)
-
+def listarPedidos(request):
+    pedidos = cargarRegistrosPedidos()
+    return render(request, 'appMorocha/listaPedidos.html', {'cargarPedidos': pedidos})
 
 # Vistas para la gestión de usuarios
 def usuario(request):
@@ -367,3 +348,16 @@ def cargarRegistrosMesas():
     """
     mesa = conexion.consultar(sintaxiSQL)
     return mesa
+
+# Editar mesa
+def editarMesa(request):
+    if request.method == 'GET':
+        id_mesa = request.GET.get('id_mesa')
+        estado = request.GET.get('estado')
+        conexion = ConexionDB()
+        conexion.ejecutar(
+            "UPDATE tb_mesa SET id_estadomesa = %s WHERE id_mesa = %s",
+            (estado, id_mesa)
+        )
+        return redirect('ingresarMesa')
+    return redirect('ingresarMesa')
