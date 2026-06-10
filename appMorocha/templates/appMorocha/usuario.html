@@ -22,7 +22,8 @@
             <select class="form-select" name="txt_rol" id="txt_rol" required>
                 <option value="">Seleccionar</option>
                 {% for rol in roles %}
-                  <option value="{{ rol.id_rol }}">{{ rol.nombre_rol }}</option>
+                  <option
+                   value="{{ rol.id_rol }}">{{ rol.nombre_rol }}</option>
                 {% endfor %}
             </select>
 

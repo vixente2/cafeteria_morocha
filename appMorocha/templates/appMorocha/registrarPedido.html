@@ -1,83 +1,80 @@
-
 {% extends 'sidebar.html' %}
 {% load static %}
 
 {% block titulo %}Registrar Pedido{% endblock %}
 
 {% block contenido %}
-    <h1>Estás en la Página de Registro de Pedidos</h1>
-    <hr>
+<h1>Estás en la Página de Registro de Pedidos</h1>
+<hr>
 
-    <div class="row g-4">
+<div class="row g-4">
 
-        <!-- Columna izquierda: formulario -->
-        <div class="col-md-4">
-            <div class="form-card">
-                <h2>Nuevo Pedido</h2>
-                <p class="subtitulo">Cafetera Morocha · Sistema de órdenes</p>
+    <!-- Columna izquierda: formulario -->
+    <div class="col-md-4">
+        <div class="form-card">
+            <h2>Nuevo Pedido</h2>
+            <p class="subtitulo">Cafetera Morocha · Sistema de órdenes</p>
 
-                <form action="{% url 'registrarPedido' %}" method="post" autocomplete="off">
-                    {% csrf_token %}
+            <form action="{% url 'registrarPedido' %}" method="post" autocomplete="off">
+                {% csrf_token %}
 
-                    <div class="mb-3">
-                        <label class="form-label" for="fecha_pedido">Fecha del pedido</label>
-                        <input type="datetime-local" class="form-control" name="fecha_pedido" id="fecha_pedido" required/>
-                    </div>
+                <div class="mb-3">
+                    <label class="form-label" for="fecha_pedido">Fecha del pedido</label>
+                    <input type="datetime-local" class="form-control" name="fecha_pedido" id="fecha_pedido" required />
+                </div>
 
-                    <button type="submit" class="btn btn-success w-100">
-                        Registrar y agregar detalle
-                    </button>
-                </form>
-            </div>
+                <button type="submit" class="btn btn-success w-100">
+                    Registrar y agregar detalle
+                </button>
+            </form>
         </div>
+    </div>
 
-        <!-- Columna derecha: tabla -->
-        <div class="col-md-8">
-            <h4>Pedidos Registrados</h4>
-            <table class="table table-striped table-bordered mt-2">
-                <thead class="table-dark">
-                    <tr>
-                        <th># Pedido</th>
-                        <th>Fecha</th>
-                        <th>Acción</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for pedido in pedidos %}
-                    <tr>
-                        <td>{{ pedido.id_pedido }}</td>
-                        <td>{{ pedido.fecha_pedido }}</td>
-                        <td>
-                            <!-- Botón con todos los datos -->
-                            <button type="button" class="btn btn-sm btn-success btnVerMas"
-                            class="btn btn-sm btn-success btnVerMas"
-                            data-id_pedido="{{ pedido.id_pedido }}"
+    <!-- Columna derecha: tabla -->
+    <div class="col-md-8">
+        <h4>Pedidos Registrados</h4>
+        <table class="table table-striped table-bordered mt-2">
+            <thead class="table-dark">
+                <tr>
+                    <th># Pedido</th>
+                    <th>Fecha</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pedido in pedidos %}
+                <tr>
+                    <td>{{ pedido.id_pedido }}</td>
+                    <td>{{ pedido.fecha_pedido }}</td>
+                    <td>
+                        <!-- Botón con todos los datos -->
+                        <button type="button" class="btn btn-sm btn-success btnVerMas"
+                            data-id_pedido="{{ pedido.id_pedido }}" 
                             data-fecha="{{ pedido.fecha_pedido }}"
-                            data-mesa="{{ pedido.num_mesa }}"
+                            data-mesa="{{ pedido.num_mesa }}" 
                             data-cliente="{{ pedido.nombre_cliente }}"
                             data-estado="{{ pedido.nombre_estadopedido }}">
-                                Ver más
-                            </button>
-                            <button type="button" class="btn btn-sm btn-danger btnEliminar" data-id_pedido="{{ pedido.id_pedido }}">Eliminar</button>
-                            <button type="button" class="btn btn-sm btn-primary">Editar</button>
-                            </a>
-                            <a class="btn btn-sm btn-danger btnEliminar" data-id_pedido="{{ pedido.id_pedido }}"> Eliminar</a>
-                            <a class="btn btn-sm btn-primary"> Editar</a>
-                        </td>                       
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="3" class="text-center text-muted">No hay pedidos registrados aún.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
+                            Ver más
+                        </button>
+                        <button type="button" class="btn btn-sm btn-danger btnEliminar"
+                            data-id_pedido="{{ pedido.id_pedido }}">Eliminar</button>
+                        <button type="button" class="btn btn-sm btn-primary">Editar</button>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" class="text-center text-muted">No hay pedidos registrados aún.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
+
+</div>
 {% endblock %}
 {% block extra_js %}
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="{% static 'appMorocha/js/funcioneseme.js'%}"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{% static 'appMorocha/js/registrarPedidos.js'%}"></script>
 {% endblock %}
