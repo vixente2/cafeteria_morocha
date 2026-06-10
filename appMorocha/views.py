@@ -429,6 +429,8 @@ def cargarRegistrosMesas():
 # Editar mesa
 @require_POST
 def editarMesa(request):
+    if login_requerido(request):
+        return redirect('login')
     id_mesa = request.POST.get('id_mesa')
     estado = request.POST.get('estado')
     estados_permitidos = {'1', '2', '3'}
