@@ -26,6 +26,6 @@ urlpatterns = [
     path('editarProducto/',                      views.editarProducto,    name='editarProducto'),
     path('eliminarProducto/<int:id_producto>/',  views.eliminarProducto,  name='eliminarProducto'),
    # Acciones para Mesa
-    path('editarMesa/',views.editarMesa),
+    path('editarMesa/', views.editarMesa, name='editarMesa'),
 
 ]

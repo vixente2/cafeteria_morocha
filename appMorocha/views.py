@@ -425,9 +425,12 @@ def cargarRegistrosMesas():
 
 # Editar mesa
 def editarMesa(request):
-    if request.method == 'GET':
-        id_mesa = request.GET.get('id_mesa')
-        estado = request.GET.get('estado')
+    if request.method == 'POST':
+        id_mesa = request.POST.get('id_mesa')
+        estado = request.POST.get('estado')
+        estados_permitidos = {'1', '2', '3'}
+        if not (id_mesa and id_mesa.isdigit() and estado in estados_permitidos):
+            return redirect('ingresarMesa')
         conexion = ConexionDB()
         conexion.ejecutar(
             "UPDATE tb_mesa SET id_estadomesa = %s WHERE id_mesa = %s",
