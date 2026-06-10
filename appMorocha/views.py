@@ -140,7 +140,13 @@ def registrarPedido(request):
 
     # GET
     context = {
-        'mesas':    db.consultar("SELECT id_mesa, num_mesa FROM tb_mesa"),
+        'mesas': db.consultar("""
+        SELECT m.id_mesa, m.num_mesa, e.nombre_estado
+        FROM tb_mesa m
+        INNER JOIN tb_estadomesa e ON m.id_estadomesa = e.id_estadomesa
+        ORDER BY m.num_mesa
+    """),
+    'usuarios': db.consultar("SELECT id_usuario, nombre_usuario FROM tb_usuario"),
         'usuarios': db.consultar("SELECT id_usuario, nombre_usuario FROM tb_usuario"),
     }
     return render(request, 'appMorocha/registrarPedido.html', context)
