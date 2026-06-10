@@ -96,6 +96,22 @@
 </div>
 
     {% endblock %}
+
     {% block extra_js %}
-        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    {% endblock %}
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script>
+    const cambiarEstado = (id_mesa, estado) => {
+        window.location.href = `/editarMesa/?id_mesa=${id_mesa}&estado=${estado}`;
+    };
+
+    document.querySelectorAll('.btnOcupado').forEach(btn =>
+        btn.addEventListener('click', () => cambiarEstado(btn.dataset.id, 1))
+    );
+    document.querySelectorAll('.btnLibre').forEach(btn =>
+        btn.addEventListener('click', () => cambiarEstado(btn.dataset.id, 2))
+    );
+    document.querySelectorAll('.btnMantenimiento').forEach(btn =>
+        btn.addEventListener('click', () => cambiarEstado(btn.dataset.id, 3))
+    );
+</script>
+{% endblock %}
