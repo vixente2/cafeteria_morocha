@@ -27,5 +27,7 @@ urlpatterns = [
     path('eliminarProducto/<int:id_producto>/',  views.eliminarProducto,  name='eliminarProducto'),
    # Acciones para Mesa
     path('editarMesa/', views.editarMesa, name='editarMesa'),
+    # Api para exportar a google sheets
+    path('exportar-sheets/', views.exportar_a_sheets, name='exportar_sheets'),
 
 ]

@@ -1,8 +1,11 @@
+from .services.google_sheets import exportar_pedidos
 from django.shortcuts import render, redirect
 from django.http import HttpResponse,  JsonResponse
+# api para exportar a google sheets
 from django.views.decorators.http import require_POST
 from .db import ConexionDB
 import json
+
 # Create your views here.
 
 def inicio(request):
@@ -512,3 +515,32 @@ def editarMesa(request):
         (estado, id_mesa)
     )
     return redirect('ingresarMesa')
+
+# Api 
+
+
+def exportar_a_sheets(request):
+    con = ConexionDB()
+
+    pedidos = con.consultar("""
+    SELECT p.id_pedido, p.fecha_pedido, p.id_cliente,
+           m.num_mesa, u.nombre_usuario, e.nombre_estadopedido,
+           SUM(pr.precio_producto * d.cantidad) as total_pedido
+    FROM tb_pedido p
+    LEFT JOIN tb_mesa m ON p.id_mesa = m.id_mesa
+    LEFT JOIN tb_usuario u ON p.id_usuario = u.id_usuario
+    LEFT JOIN tb_estadopedido e ON p.id_estadopedido = e.id_estadopedido
+    LEFT JOIN tb_detallepedido d ON p.id_pedido = d.id_pedido
+    LEFT JOIN tb_producto pr ON d.id_producto = pr.id_producto
+    GROUP BY p.id_pedido, p.fecha_pedido, p.id_cliente,
+             m.num_mesa, u.nombre_usuario, e.nombre_estadopedido
+""")
+    detalles = con.consultar("""
+        SELECT d.id_detallepedido, d.id_pedido,
+               pr.nombre_producto, pr.precio_producto, d.cantidad
+        FROM tb_detallepedido d
+        LEFT JOIN tb_producto pr ON d.id_producto = pr.id_producto
+    """)
+
+    exportar_pedidos(pedidos, detalles)
+    return JsonResponse({'mensaje': 'Exportado correctamente', 'status': 'ok'})
