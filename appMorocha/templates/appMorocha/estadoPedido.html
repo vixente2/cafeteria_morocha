@@ -33,7 +33,9 @@
                 ">
 
                     <div class="card-header">
-                        Mesa {{ pedido.num_mesa }}
+                        Mesa {{ pedido.num_mesa }} -- 
+                        Pedido : {{ pedido.id_pedido }}
+                        Total : {{ Total }}
                     </div>
 
                     <div class="card-body">
@@ -46,23 +48,10 @@
                         </p>
 
                         <div class="d-flex gap-2 flex-wrap">
-
-                            <button class="btn btn-light btnEspera" data-id="{{ pedido.id_pedido }}">
-                                Espera
-                            </button>
-
-                            <button class="btn btn-dark btnPreparando" data-id="{{ pedido.id_pedido }}">
-                                Preparando
-                            </button>
-
-                            <button class="btn btn-success btnListo" data-id="{{ pedido.id_pedido }}">
-                                Listo
-                            </button>
-
-                            <button class="btn btn-danger btnFinalizado" data-id="{{ pedido.id_pedido }}">
-                                Finalizado
-                            </button>
-
+                            <a href="{% url 'actualizarEstadoPedido' pedido.id_pedido 'Espera' %}" class="btn btn-light">Espera</a>
+                            <a href="{% url 'actualizarEstadoPedido' pedido.id_pedido 'Preparando' %}" class="btn btn-dark">Preparando</a>
+                            <a href="{% url 'actualizarEstadoPedido' pedido.id_pedido 'Listo' %}" class="btn btn-success">Listo</a>
+                            <a href="{% url 'actualizarEstadoPedido' pedido.id_pedido 'Finalizado' %}" class="btn btn-danger">Finalizado</a>
                         </div>
                     </div>
 

@@ -101,7 +101,34 @@
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script>
     const cambiarEstado = (id_mesa, estado) => {
-        window.location.href = `/editarMesa/?id_mesa=${id_mesa}&estado=${estado}`;
+        if (!/^\d+$/.test(String(id_mesa)) || ![1, 2, 3].includes(estado)) {
+            return;
+        }
+
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = "{% url 'editarMesa' %}";
+
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = '{{ csrf_token }}';
+
+        const idMesaInput = document.createElement('input');
+        idMesaInput.type = 'hidden';
+        idMesaInput.name = 'id_mesa';
+        idMesaInput.value = id_mesa;
+
+        const estadoInput = document.createElement('input');
+        estadoInput.type = 'hidden';
+        estadoInput.name = 'estado';
+        estadoInput.value = estado;
+
+        form.appendChild(csrfInput);
+        form.appendChild(idMesaInput);
+        form.appendChild(estadoInput);
+        document.body.appendChild(form);
+        form.submit();
     };
 
     document.querySelectorAll('.btnOcupado').forEach(btn =>

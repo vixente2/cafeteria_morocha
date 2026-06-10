@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse,  JsonResponse
+from django.views.decorators.http import require_POST
 from .db import ConexionDB
 import json
 # Create your views here.
@@ -153,7 +154,45 @@ def eliminarPedido(request, id_pedido):
         db.ejecutar("DELETE FROM tb_pedido WHERE id_pedido = %s", [id_pedido])
         return redirect('registrarPedido')
        
+def detallePedido(request, id_pedido):
+    db = ConexionDB()
+
+    if request.method == 'POST':
+        db.ejecutar("""
+            INSERT INTO tb_detallepedido 
+                (id_pedido, id_producto, cantidad)
+            VALUES (%s, %s, %s)
+        """, [
+            id_pedido,
+            request.POST['id_producto'],
+            request.POST['cantidad'],
+        ])
+
+        return redirect('detallePedido', id_pedido=id_pedido)
+
+    context = {
+        'id_pedido':  id_pedido,
+        'productos':  db.consultar("SELECT id_producto, nombre_producto, precio_producto FROM tb_producto"),
+    }
+    return render(request, 'appMorocha/detallePedido.html', context)
+
+# cambiar estado de los pedidos
+def actualizarEstadoPedido(request, id_pedido, estado):
+    db = ConexionDB()
+    resultado = db.consultar(
+        "SELECT id_estadopedido FROM tb_estadopedido WHERE nombre_estadopedido = %s LIMIT 1",
+        [estado]
+    )
+    if resultado:
+        db.ejecutar(
+            "UPDATE tb_pedido SET id_estadopedido = %s WHERE id_pedido = %s",
+            [resultado[0]['id_estadopedido'], id_pedido]
+        )
+    return redirect('estadoPedido')
+
 def listarPedidos(request):
+    if login_requerido(request):
+        return redirect('login')
     pedidos = cargarRegistrosPedidos()
     return render(request, 'appMorocha/listaPedidos.html', {'cargarPedidos': pedidos})
 
@@ -188,23 +227,6 @@ def cargarRegistros():
     usuario = conexion.consultar(sintaxiSQL)
     return usuario
 
-# Eliminar usuario
-def eliminarUsuario(request,nombreUsuario):
-    conexion=ConexionDB()
-    validarRegistro="""
-        select * from tb_usuario where nombre_usuario = %s
-    """
-    if(conexion.consultar(validarRegistro,(nombreUsuario,))):
-        #Existe un registro
-        consultaEliminar="""
-            delete from tb_usuario  where nombre_usuario = %s
-        """
-        conexion.ejecutar(consultaEliminar,(nombreUsuario,))
-        usuarios = cargarRegistros()
-        return render(request,'appMorocha/usuario.html',{
-        "UsuariosRegistrados" : usuarios
-        })
-
  # Guardar usuario
 def procesarUsuario(request):
     db = ConexionDB()
@@ -238,6 +260,61 @@ def procesarUsuario(request):
         'roles':  db.consultar("SELECT id_rol, nombre_rol FROM tb_roles"),
     }
     return render(request,'appMorocha/usuario.html',context)
+
+# Eliminar usuario
+def eliminarUsuario(request,nombreUsuario):
+    conexion=ConexionDB()
+    validarRegistro="""
+        select * from tb_usuario where nombre_usuario = %s
+    """
+    if(conexion.consultar(validarRegistro,(nombreUsuario,))):
+        #Existe un registro
+        consultaEliminar="""
+            delete from tb_usuario  where nombre_usuario = %s
+        """
+        conexion.ejecutar(consultaEliminar,(nombreUsuario,))
+        usuarios = cargarRegistros()
+        return render(request,'appMorocha/usuario.html',{
+        "UsuariosRegistrados" : usuarios
+        })
+    
+# Editar usuario
+def editarUsuario(request):
+    if request.method == 'GET':
+        id_usuario    = request.GET.get('id_usuario')
+        nombreUsuario = request.GET.get('txt_nombreusuario')
+        clave         = request.GET.get('txt_clave')
+        rol           = request.GET.get('txt_rol')
+        conexion = ConexionDB()
+
+        # Verificar que el nombre no lo use otro usuario
+        duplicado = conexion.consultar(
+            "SELECT * FROM tb_usuario WHERE nombre_usuario = %s AND id_usuario != %s",
+            (nombreUsuario, id_usuario)
+        )
+        if duplicado:
+            usuarios = cargarRegistros()
+            roles = conexion.consultar("SELECT id_rol, nombre_rol FROM tb_roles")
+            return render(request, 'appMorocha/usuario.html', {
+                'msg': 'Ese nombre de usuario ya está en uso.',
+                'color': 'red',
+                'UsuariosRegistrados': usuarios,
+                'roles': roles
+            })
+
+        conexion.ejecutar(
+            "UPDATE tb_usuario SET nombre_usuario = %s, clave = %s, id_rol = %s WHERE id_usuario = %s",
+            (nombreUsuario, clave, rol, id_usuario)
+        )
+        usuarios = cargarRegistros()
+        roles = conexion.consultar("SELECT id_rol, nombre_rol FROM tb_roles")
+        return render(request, 'appMorocha/usuario.html', {
+            'msg': 'Usuario actualizado correctamente!',
+            'color': 'green',
+            'UsuariosRegistrados': usuarios,
+            'roles': roles
+        })
+    return redirect('usuario')
 
 # Ingresar vista para productos
 def ingresarProducto(request):
@@ -350,14 +427,18 @@ def cargarRegistrosMesas():
     return mesa
 
 # Editar mesa
+@require_POST
 def editarMesa(request):
-    if request.method == 'GET':
-        id_mesa = request.GET.get('id_mesa')
-        estado = request.GET.get('estado')
-        conexion = ConexionDB()
-        conexion.ejecutar(
-            "UPDATE tb_mesa SET id_estadomesa = %s WHERE id_mesa = %s",
-            (estado, id_mesa)
-        )
+    if login_requerido(request):
+        return redirect('login')
+    id_mesa = request.POST.get('id_mesa')
+    estado = request.POST.get('estado')
+    estados_permitidos = {'1', '2', '3'}
+    if not (id_mesa and id_mesa.isdigit() and estado in estados_permitidos):
         return redirect('ingresarMesa')
+    conexion = ConexionDB()
+    conexion.ejecutar(
+        "UPDATE tb_mesa SET id_estadomesa = %s WHERE id_mesa = %s",
+        (estado, id_mesa)
+    )
     return redirect('ingresarMesa')
