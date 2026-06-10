@@ -4,31 +4,30 @@
 {% block titulo %}Usuarios{% endblock %}
 
 {% block contenido %}
-<div class="row">  
-    
+<div class="row">
+
     <div class="col-md-5">
         <h1 class="text-center">Formulario</h1><br>
         {% if msg %}
-            <h3 class="{{color}}">{{msg}}</h3>
+        <h3 class="{{color}}">{{msg}}</h3>
         {% endif %}
         <form action="/procesarUsuario/" autocomplete="off" method="get">
             {% csrf_token %}
             <label>Nombre usuario</label>
-            <input type="text" class="form-control" name="txt_nombreusuario" required placeholder="Ej: emer1"/>
+            <input type="text" class="form-control" name="txt_nombreusuario" required placeholder="Ej: emer1" />
             <label>Clave</label>
-            <input type="password" class="form-control" name="txt_clave" required placeholder="Ej: ***"/>
+            <input type="password" class="form-control" name="txt_clave" required placeholder="Ej: ***" />
 
             <label>Rol</label>
             <select class="form-select" name="txt_rol" id="txt_rol" required>
                 <option value="">Seleccionar</option>
                 {% for rol in roles %}
-                  <option
-                   value="{{ rol.id_rol }}">{{ rol.nombre_rol }}</option>
+                <option value="{{ rol.id_rol }}">{{ rol.nombre_rol }}</option>
                 {% endfor %}
             </select>
 
             <hr>
-            <input type="submit" class="btn btn-success form-control" value="Agregar Usuario"/>
+            <input type="submit" class="btn btn-success form-control" value="Agregar Usuario" />
         </form>
     </div>
 
@@ -46,30 +45,34 @@
             </thead>
             <tbody>
                 {% if UsuariosRegistrados %}
-                    {% for usuario in UsuariosRegistrados %}
-                        <tr>
-                            <td>{{usuario.nombre_usuario}}</td>
-                            <td>{{usuario.clave}}</td>
-                            <td>{{usuario.nombre_rol}}</td>
-                            <td><button class="btn btn-warning">Editar</button></td>
-                            <td>
-                                <button class="btn btn-danger btnEliminar"
-
-                                    data-usuario="{{usuario.nombre_usuario}}"
-                                    data-clave="{{usuario.clave}}">
-                                    Eliminar</button>
-                            </td>
-                            <td>
-                                <button class="btn btn-info btnVerMas"
-                                    data-id="{{usuario.id_usuario}}"
-                                    data-usuario="{{usuario.nombre_usuario}}"
-                                    data-clave="{{usuario.clave}}"
-                                    data-rol="{{usuario.nombre_rol}}">Ver Más</button>
-                            </td>
-                        </tr>
-                    {% endfor %}
+                {% for usuario in UsuariosRegistrados %}
+                <tr>
+                    <td>{{usuario.nombre_usuario}}</td>
+                    <td>{{usuario.clave}}</td>
+                    <td>{{usuario.nombre_rol}}</td>
+                    <td>
+                        <button class="btn btn-warning btnEditar" data-id="{{ usuario.id_usuario }}"
+                            data-usuario="{{ usuario.nombre_usuario }}" data-clave="{{ usuario.clave }}"
+                            data-id-rol="{{ usuario.id_rol }}">
+                            Editar
+                        </button>
+                    </td>
+                    <td>
+                        <button class="btn btn-danger btnEliminar" data-usuario="{{usuario.nombre_usuario}}"
+                            data-clave="{{usuario.clave}}">
+                            Eliminar</button>
+                    </td>
+                    <td>
+                        <button class="btn btn-info btnVerMas" data-id="{{usuario.id_usuario}}"
+                            data-usuario="{{usuario.nombre_usuario}}" data-clave="{{usuario.clave}}"
+                            data-rol="{{usuario.nombre_rol}}">Ver Más</button>
+                    </td>
+                </tr>
+                {% endfor %}
                 {% else %}
-                    <tr><td colspan="7">NO EXISTEN REGISTROS</td></tr>
+                <tr>
+                    <td colspan="7">NO EXISTEN REGISTROS</td>
+                </tr>
                 {% endif %}
             </tbody>
         </table>
