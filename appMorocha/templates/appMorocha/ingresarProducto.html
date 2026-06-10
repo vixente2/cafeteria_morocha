@@ -39,19 +39,26 @@
                         <tr>
                             <td>{{producto.nombre_producto}}</td>
                             <td>{{producto.precio}}</td>
-                            <td><button class="btn btn-warning">Editar</button></td>
+                            <td>
+                                <button class="btn btn-warning btnEditar"
+                                    data-id="{{producto.id_producto}}"
+                                    data-producto="{{producto.nombre_producto}}"
+                                    data-precio="{{producto.precio}}">
+                                    Editar
+                                </button>
+                            </td>
                             <td>
                                 <button class="btn btn-danger btnEliminar"
 
-                                    data-producto="{{producto.nombre_producto}}"
-                                    data-clave="{{producto.clave}}">
+                                    data-id="{{producto.id_producto}}"
+                                    data-producto="{{producto.nombre_producto}}">
                                     Eliminar</button>
                             </td>
                             <td>
                                 <button class="btn btn-info btnVerMas"
                                     data-id="{{producto.id_producto}}"
                                     data-producto="{{producto.nombre_producto}}"
-                                    data-clave="{{producto.clave}}"
+                                    data-id_producto="{{producto.id_producto}}"
                                     data-precio="{{producto.precio  }}">Ver Más</button>
                             </td>
                         </tr>
@@ -68,6 +75,8 @@
 {% block extra_js %}
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{% static 'appMorocha/js/ingresarProductos.js'%}"></script>
+
 <script>
 document.getElementById("precio").addEventListener("input", function() {
     this.value = this.value.replace(/[^0-9]/g, "");

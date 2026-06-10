@@ -192,7 +192,7 @@
         </div>
         <nav class="sidebar-menu">
             <div class="menu-label">Principal</div>
-            <a href="/" class="menu-item ">
+            <a href="/inicio/" class="menu-item ">
                 <i class="fas fa-home"></i><span>Inicio</span>
             </a>
             <a href="/registrarPedido/" class="menu-item">
@@ -205,9 +205,6 @@
                 <i class="fas fa-table"></i><span>Mesas</span>
             </a>
             <div class="menu-label">Sistema</div>
-            <a href="/login/" class="menu-item">
-                <i class="fas fa-lock"></i><span>Login</span>
-            </a>
             </a>
             <div class="menu-label">Admin</div>
             <a href="/usuario/" class="menu-item">
@@ -220,7 +217,7 @@
         </nav>
     </div>
     <div class="sidebar-bottom">
-        <a href="/logout/" class="menu-item" style="color: var(--primary)">
+        <a href="{% url 'logout' %}" class="menu-item" style="color: var(--primary)">
             <i class="fas fa-sign-out-alt"></i><span>Cerrar sesión</span>
         </a>
         <div class="toggle-row" id="toggle-theme-btn">

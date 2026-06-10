@@ -3,21 +3,24 @@ from . import views
 
 urlpatterns = [
     # Rutas para las vistas
-    path('',views.inicio, name='inicio'),
-    path('login/',views.login, name='login'),
+    path('',views.login, name='login'),
+    path('logout/', views.logout, name='logout'),
+    path('inicio/',views.inicio, name='inicio'),
     path('estadoPedido/',views.estadoPedido, name='estadoPedido'),
     path('usuario/',views.usuario),
     path('registrarPedido/',views.registrarPedido, name='registrarPedido'),
     path('ingresarProducto/',views.ingresarProducto, name='ingresarProducto'),
     path('ingresarMesa/',views.ingresarMesa, name='ingresarMesa'),
-    # Rutas para las acciones
+    # Acciones para Pedidos
     path('detallePedido/<int:id_pedido>/',views.detallePedido, name='detallePedido'),
     path('eliminarPedido/<int:id_pedido>/', views.eliminarPedido, name='eliminarPedido'),
-    # Guardar datos de usuarios y liminar usuario
+    # Acciones para Usuario
     path('procesarUsuario/',views.procesarUsuario),
     path('eliminarUsuario/<str:nombreUsuario>/',views.eliminarUsuario,name='eliminarUsuario'),
-    # Guardar datos de productos
+    # Acciones para Productos
     path('procesarProducto/',views.procesarProducto),
+    path('editarProducto/',                      views.editarProducto,    name='editarProducto'),
+    path('eliminarProducto/<int:id_producto>/',  views.eliminarProducto,  name='eliminarProducto')
    
 
 ]
