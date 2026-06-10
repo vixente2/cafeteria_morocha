@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponse
+from django.http import HttpResponse,  JsonResponse
 from .db import ConexionDB
-
+import json
 # Create your views here.
 
 def inicio(request):
@@ -55,16 +55,17 @@ def estadoPedido(request):
     cargarPedidos = cargarRegistrosPedidos()
     return render(request, 'appMorocha/estadoPedido.html', {'cargarPedidos': cargarPedidos})
 
+
+
 def cargarRegistrosPedidos():
-    conexion=ConexionDB()
-    sintaxiSQL="""
-    SELECT DISTINCT p.id_pedido, p.fecha_pedido,
+    conexion = ConexionDB()
+    sintaxiSQL = """
+    SELECT p.id_pedido, p.fecha_pedido,
            m.num_mesa, c.nombre_cliente, e.nombre_estadopedido
     FROM tb_pedido p
-    LEFT JOIN tb_detallepedido d ON p.id_pedido = d.id_pedido
-    LEFT JOIN tb_mesa m          ON d.id_mesa = m.id_mesa
-    LEFT JOIN tb_cliente c       ON d.id_cliente = c.id_cliente
-    LEFT JOIN tb_estadopedido e  ON d.id_estadopedido = e.id_estadopedido
+    LEFT JOIN tb_mesa         m ON p.id_mesa         = m.id_mesa
+    LEFT JOIN tb_cliente      c ON p.id_cliente      = c.id_cliente
+    LEFT JOIN tb_estadopedido e ON p.id_estadopedido = e.id_estadopedido
     ORDER BY 
         FIELD(e.nombre_estadopedido, 'Preparando', 'Espera', 'Listo', 'Finalizado'),
         p.id_pedido DESC
@@ -77,31 +78,72 @@ def cargarRegistrosPedidos():
 def registrarPedido(request):
     if login_requerido(request):
         return redirect('login')
-    if request.method == 'POST':
-        db = ConexionDB()
-        db.ejecutar("INSERT INTO tb_pedido (fecha_pedido) VALUES (%s)", 
-                    [request.POST['fecha_pedido']])
-        resultado = db.consultar("SELECT MAX(id_pedido) as id FROM tb_pedido")
-        id_pedido = resultado[0]['id']
-        # Pasar id al template de detallePedido
-        return redirect('detallePedido', id_pedido=id_pedido)
-
-    # ── GET: cargar tabla de pedidos ──────────────────────────
     db = ConexionDB()
+    if request.method == 'POST':
+        # ── AJAX: agregar producto al detalle ──
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            data = json.loads(request.body)
+            db.ejecutar("""
+                INSERT INTO tb_detallepedido (id_pedido, id_producto, cantidad)
+                VALUES (%s, %s, %s)
+            """, [data['id_pedido'], data['id_producto'], data['cantidad']])
+
+            # Devolver tabla actualizada
+            detalles = db.consultar("""
+                SELECT p.nombre_producto, d.cantidad, p.precio_producto,
+                       (d.cantidad * p.precio_producto) as subtotal
+                FROM tb_detallepedido d
+                JOIN tb_producto p ON d.id_producto = p.id_producto
+                WHERE d.id_pedido = %s
+            """, [data['id_pedido']])
+
+            return JsonResponse({'ok': True, 'detalles': detalles})
+
+        # ── POST normal: crear pedido ──
+        nombre_cliente = request.POST['nombre_cliente']
+
+        db.ejecutar(
+            "INSERT INTO tb_cliente (nombre_cliente) VALUES (%s)",
+            [nombre_cliente]
+        )
+        resultado = db.consultar(
+            "SELECT id_cliente FROM tb_cliente WHERE nombre_cliente = %s ORDER BY id_cliente DESC LIMIT 1",
+            [nombre_cliente]
+        )
+        id_cliente = resultado[0]['id_cliente']
+
+        estado = db.consultar(
+            "SELECT id_estadopedido FROM tb_estadopedido WHERE nombre_estadopedido = 'Preparando' LIMIT 1"
+        )
+        id_estado = estado[0]['id_estadopedido']
+
+        db.ejecutar("""
+            INSERT INTO tb_pedido (fecha_pedido, id_cliente, id_mesa, id_usuario, id_estadopedido)
+            VALUES (NOW(), %s, %s, %s, %s)
+        """, [id_cliente, request.POST['id_mesa'], request.POST['id_usuario'], id_estado])
+
+        pedido = db.consultar("""
+            SELECT id_pedido FROM tb_pedido
+            WHERE id_cliente = %s
+            ORDER BY id_pedido DESC LIMIT 1
+        """, [id_cliente])
+        id_pedido = pedido[0]['id_pedido']
+
+        productos = db.consultar(
+            "SELECT id_producto, nombre_producto, precio_producto FROM tb_producto"
+        )
+        return render(request, 'appMorocha/registrarPedido.html', {
+            'id_pedido': id_pedido,
+            'productos': productos,
+        })
+
+    # GET
     context = {
-    'pedidos': db.consultar("""
-    SELECT DISTINCT p.id_pedido, p.fecha_pedido,
-           m.num_mesa, c.nombre_cliente, e.nombre_estadopedido
-    FROM tb_pedido p
-    LEFT JOIN tb_detallepedido d ON p.id_pedido = d.id_pedido
-    LEFT JOIN tb_mesa m          ON d.id_mesa = m.id_mesa
-    LEFT JOIN tb_cliente c       ON d.id_cliente = c.id_cliente
-    LEFT JOIN tb_estadopedido e  ON d.id_estadopedido = e.id_estadopedido
-    ORDER BY p.id_pedido DESC
-    """),
+        'mesas':    db.consultar("SELECT id_mesa, num_mesa FROM tb_mesa"),
+        'usuarios': db.consultar("SELECT id_usuario, nombre_usuario FROM tb_usuario"),
     }
     return render(request, 'appMorocha/registrarPedido.html', context)
-   
+
 def eliminarPedido(request, id_pedido):
     if request.method == 'GET':
         db = ConexionDB()
@@ -113,33 +155,23 @@ def eliminarPedido(request, id_pedido):
        
 def detallePedido(request, id_pedido):
     db = ConexionDB()
-    # ── POST: guardar los datos ──────────────────────────
-        # ── POST: guardar los datos ──────────────────────────
+
     if request.method == 'POST':
-        # 2 — Insertar el detalle con todas las FK
         db.ejecutar("""
             INSERT INTO tb_detallepedido 
-                (id_pedido, id_mesa, id_cliente, id_producto, id_usuario, id_estadopedido)
-            VALUES (%s, %s, %s, %s, %s, %s)
+                (id_pedido, id_producto, cantidad)
+            VALUES (%s, %s, %s)
         """, [
             id_pedido,
-            request.POST['id_mesa'],
-            request.POST['id_cliente'],
             request.POST['id_producto'],
-            request.POST['id_usuario'],
-            request.POST['id_estadopedido'],
+            request.POST['cantidad'],
         ])
 
-        return redirect('detallePedido', id_pedido=id_pedido)  # permite agregar más productos
-    
-    # cargar selects
+        return redirect('detallePedido', id_pedido=id_pedido)
+
     context = {
-        'id_pedido': id_pedido,  # ← debe estar aquí obligatoriamente
-        'mesas':     db.consultar("SELECT id_mesa, num_mesa FROM tb_mesa"),
-        'clientes':  db.consultar("SELECT id_cliente, nombre_cliente FROM tb_cliente"),
-        'productos': db.consultar("SELECT id_producto, nombre_producto, precio_producto FROM tb_producto"),
-        'usuarios':  db.consultar("SELECT id_usuario, nombre_usuario FROM tb_usuario"),
-        'estados':   db.consultar("SELECT id_estadopedido, nombre_estadopedido FROM tb_estadopedido"),
+        'id_pedido':  id_pedido,
+        'productos':  db.consultar("SELECT id_producto, nombre_producto, precio_producto FROM tb_producto"),
     }
     return render(request, 'appMorocha/detallePedido.html', context)
 
