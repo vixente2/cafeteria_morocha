@@ -12,6 +12,7 @@ urlpatterns = [
     path('ingresarProducto/',views.ingresarProducto, name='ingresarProducto'),
     path('ingresarMesa/',views.ingresarMesa, name='ingresarMesa'),
     path('listarPedidos/',views.listarPedidos, name='listarPedidos'),
+    path('auditoria/', views.auditoriaLogin, name='auditoria'),
     # Acciones para Pedidos
     path('detallePedido/<int:id_pedido>/',views.detallePedido, name='detallePedido'),
     path('eliminarPedido/<int:id_pedido>/', views.eliminarPedido, name='eliminarPedido'),
