@@ -17,31 +17,75 @@ def login(request):
     if request.method == 'POST':
         nombre_usuario = request.POST.get('txt_usuario')
         clave = request.POST.get('txt_clave')
-        
+
         conexion = ConexionDB()
+
         consulta = """
-            SELECT u.id_usuario, u.nombre_usuario, r.nombre_rol
+            SELECT u.id_usuario, u.nombre_usuario, u.clave, r.nombre_rol
             FROM tb_usuario u
             INNER JOIN tb_roles r ON u.id_rol = r.id_rol
-            WHERE u.nombre_usuario = %s AND u.clave = %s
+            WHERE u.nombre_usuario = %s
         """
-        resultado = conexion.consultar(consulta, (nombre_usuario, clave))
-        
-        if resultado:
-            usuario = resultado[0]
-            # comparamos los datos como cookies para no tener que crear las tablas migratorias de django en nuestra bd.
-            res = redirect('inicio')        # guardar el redirect en "res"
-            res.set_cookie('id_usuario', usuario['id_usuario'])
-            res.set_cookie('nombre_usuario', usuario['nombre_usuario'])
-            res.set_cookie('rol', usuario['nombre_rol'])
-            return res  # redirige al inicio si es correcto
-        else:
+        resultado = conexion.consultar(consulta, (nombre_usuario,))
+
+        id_correcto = obtenerIdEstadoLogin(conexion, 'Login Correcto')
+        id_incorrecto = obtenerIdEstadoLogin(conexion, 'Login Incorrecto')
+
+        if not resultado:
+            registrarAuditoria(conexion, nombre_usuario, id_incorrecto, clave)
             return render(request, 'appMorocha/login.html', {
                 'msg': 'Usuario o contraseña incorrectos',
                 'color': 'red'
             })
-    
+
+        usuario = resultado[0]
+
+        if usuario['clave'] != clave:
+            registrarAuditoria(conexion, nombre_usuario, id_incorrecto, clave)
+            return render(request, 'appMorocha/login.html', {
+                'msg': 'Usuario o contraseña incorrectos',
+                'color': 'red'
+            })
+
+        registrarAuditoria(conexion, nombre_usuario, id_correcto)
+
+        res = redirect('inicio')
+        res.set_cookie('id_usuario', usuario['id_usuario'])
+        res.set_cookie('nombre_usuario', usuario['nombre_usuario'])
+        res.set_cookie('rol', usuario['nombre_rol'])
+        return res
+
     return render(request, 'appMorocha/login.html')
+
+
+def obtenerIdEstadoLogin(conexion, nombre_estado):
+    resultado = conexion.consultar(
+        "SELECT id_estado FROM tb_estadologin WHERE nombre_estado = %s LIMIT 1",
+        (nombre_estado,)
+    )
+    return resultado[0]['id_estado'] if resultado else None
+
+
+def registrarAuditoria(conexion, username, id_estado, password=None):
+    conexion.ejecutar("""
+        INSERT INTO tb_auditoria (username, fecha_hora, id_estado, passwordIngresada)
+        VALUES (%s, NOW(), %s, %s)
+    """, (username, id_estado, password))
+
+def auditoriaLogin(request):
+    if login_requerido(request):
+        return redirect('login')
+
+    conexion = ConexionDB()
+    registros = conexion.consultar("""
+        SELECT au.id_auditoria, au.username, au.fecha_hora,
+               e.nombre_estado, au.passwordIngresada
+        FROM tb_auditoria au
+        JOIN tb_estadologin e ON au.id_estado = e.id_estado
+        ORDER BY au.fecha_hora DESC
+    """)
+    return render(request, 'appMorocha/auditoria.html', {'registros': registros})
+
 
 def login_requerido(request):
     return not request.COOKIES.get('id_usuario')
