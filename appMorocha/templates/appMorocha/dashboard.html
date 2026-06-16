@@ -1,0 +1,85 @@
+{% extends 'sidebar.html' %}
+{% load static %}
+
+{% block titulo %}dashboard{% endblock %}
+{% block contenido  %}
+
+<h2 class="mb-4">Dashboard</h2>
+
+<div class="row">
+  <div class="col-md-6 mb-4">
+    <div class="card p-3">
+      <h5>Productos más pedidos</h5>
+      <canvas id="grafProductos"></canvas>
+    </div>
+  </div>
+  <div class="col-md-3 mb-4">
+    <div class="card p-3">
+      <h5>Estado pedidos</h5>
+      <canvas id="grafEstadoPedido"></canvas>
+    </div>
+  </div>
+  <div class="col-md-3 mb-4">
+    <div class="card p-3">
+      <h5>Estado mesas</h5>
+      <canvas id="grafEstadoMesa"></canvas>
+    </div>
+  </div>
+</div>
+
+
+{% endblock %}
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  fetch("{% url 'datos_dashboard' %}")
+    .then(r => r.json())
+    .then(data => {
+
+      new Chart(document.getElementById('grafProductos'), {
+        type: 'bar',
+        data: {
+          labels: data.productos.map(p => p.nombre_producto),
+          datasets: [{
+            label: 'Cantidad pedida',
+            data: data.productos.map(p => p.total),
+            backgroundColor: '#4e73df'
+          }]
+        },
+        options: { responsive: true, plugins: { legend: { display: false } } }
+      });
+
+      new Chart(document.getElementById('grafEstadoPedido'), {
+        type: 'doughnut',
+        data: {
+          labels: data.estados_pedido.map(e => e.nombre_estadopedido),
+          datasets: [{
+            data: data.estados_pedido.map(e => e.total),
+            backgroundColor: ['#f6c23e','#1cc88a','#36b9cc','#858796']
+          }]
+        }
+      });
+
+      new Chart(document.getElementById('grafEstadoMesa'), {
+        type: 'doughnut',
+        data: {
+          labels: data.estados_mesa.map(e => e.nombre_estado),
+          datasets: [{
+            data: data.estados_mesa.map(e => e.total),
+            backgroundColor: ['#e74a3b','#1cc88a','#f6c23e']
+          }]
+        }
+      });
+
+    })
+    .catch(err => console.error('Error fetch:', err));
+});
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('grafProductos:', document.getElementById('grafProductos'));
+  console.log('grafEstadoPedido:', document.getElementById('grafEstadoPedido'));
+  console.log('grafEstadoMesa:', document.getElementById('grafEstadoMesa'));
+});
+</script>
+    
+{% endblock %}
