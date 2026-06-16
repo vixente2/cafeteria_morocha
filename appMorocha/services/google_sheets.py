@@ -21,7 +21,7 @@ def exportar_pedidos(pedidos, detalles):
         spreadsheet = client.open("Ventas Cafetera Morocha")
     except:
         spreadsheet = client.create("Ventas Cafetera Morocha")
-        spreadsheet.share('TU_CORREO@gmail.com', perm_type='user', role='writer')
+        spreadsheet.share('carlos.lara2@virginiogomez.cl', perm_type='user', role='writer')
 
     # ── Hoja 1: Pedidos ──
     hoja_pedidos = spreadsheet.sheet1

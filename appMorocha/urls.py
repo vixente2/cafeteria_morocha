@@ -30,5 +30,6 @@ urlpatterns = [
     path('editarMesa/', views.editarMesa, name='editarMesa'),
     # Api para exportar a google sheets
     path('exportar-sheets/', views.exportar_a_sheets, name='exportar_sheets'),
-
+    path('dashboard/datos/', views.datos_dashboard, name='datos_dashboard'),
+    path('dashboard/', views.dashboard, name='dashboard'),
 ]

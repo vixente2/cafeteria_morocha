@@ -588,3 +588,46 @@ def exportar_a_sheets(request):
 
     exportar_pedidos(pedidos, detalles)
     return JsonResponse({'mensaje': 'Exportado correctamente', 'status': 'ok'})
+
+# dashboard
+def datos_dashboard(request):
+    if login_requerido(request):
+        return JsonResponse({'error': 'no autorizado'}, status=401)
+    
+    db = ConexionDB()
+
+    # Gráfico 1: Productos más pedidos
+    productos = db.consultar("""
+        SELECT pr.nombre_producto, SUM(d.cantidad) AS total
+        FROM tb_detallepedido d
+        JOIN tb_producto pr ON d.id_producto = pr.id_producto
+        GROUP BY pr.nombre_producto
+        ORDER BY total DESC
+    """)
+
+    # Gráfico 2: Pedidos por estado
+    estados_pedido = db.consultar("""
+        SELECT e.nombre_estadopedido, COUNT(p.id_pedido) AS total
+        FROM tb_estadopedido e
+        LEFT JOIN tb_pedido p ON e.id_estadopedido = p.id_estadopedido
+        GROUP BY e.nombre_estadopedido
+    """)
+
+    # Gráfico 3: Mesas por estado
+    estados_mesa = db.consultar("""
+        SELECT e.nombre_estado, COUNT(m.id_mesa) AS total
+        FROM tb_estadomesa e
+        LEFT JOIN tb_mesa m ON e.id_estadomesa = m.id_estadomesa
+        GROUP BY e.nombre_estado
+    """)
+
+    return JsonResponse({
+        'productos': list(productos),
+        'estados_pedido': list(estados_pedido),
+        'estados_mesa': list(estados_mesa),
+    })
+
+def dashboard(request):
+    if login_requerido(request):
+        return redirect('login')
+    return render(request, 'appMorocha/dashboard.html')
