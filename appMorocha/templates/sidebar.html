@@ -234,6 +234,11 @@
         <div class="toggle-row" id="collapse-btn">
             <i class="fas fa-angle-double-left" id="collapse-icon"></i><span>Colapsar</span>
         </div>
+        <div class="card text-center p-3">
+            <h6 class="text-muted">Hora actual</h6>
+            <h2 id="horaActual">--:--:--</h2>
+            <p id="fechaActual" class="text-muted"></p>
+        </div>
     </div>
 </div>
 
@@ -261,6 +266,20 @@
         document.getElementById('main-content').style.marginLeft =
             collapsed ? 'var(--sidebar-collapsed)' : 'var(--sidebar-width)';
     });
+</script>
+<script>
+function obtenerHora() {
+    fetch('/hora/')
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById('horaActual').innerText = data.hora;
+            document.getElementById('fechaActual').innerText = 
+                data.dia + ', ' + data.fecha;
+        });
+}
+
+obtenerHora();
+setInterval(obtenerHora, 60000);
 </script>
 
 {% block extra_js %}{% endblock %}

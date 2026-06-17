@@ -5,6 +5,7 @@ from django.http import HttpResponse,  JsonResponse
 from django.views.decorators.http import require_POST
 from .db import ConexionDB
 import json
+import requests
 
 # Create your views here.
 
@@ -631,3 +632,13 @@ def dashboard(request):
     if login_requerido(request):
         return redirect('login')
     return render(request, 'appMorocha/dashboard.html')
+
+#Api hora
+def hora_actual(request):
+    response = requests.get("https://timeapi.io/api/time/current/zone?timeZone=America/Santiago")
+    data = response.json()
+    return JsonResponse({
+        "hora": data["time"],
+        "fecha": data["date"],
+        "dia": data["dayOfWeek"]
+    })
