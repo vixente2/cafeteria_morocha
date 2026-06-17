@@ -9,10 +9,23 @@
 <div class="row">
 
     <h1>Estas en la Pagina de Mesas</h1>
-
+    {% if rol == 'admin' %}
+    <div class="col-md-4 mb-3">
+        <form method="POST" action="{% url 'agregarMesa' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success btn-lg">
+                Agregar Mesa
+            </button>
+        </form>
+    </div>
+    {% endif %}
+    {% if msg %}
+    <div class="alert alert-danger" role="alert">
+        {{ msg }}
+    </div>
+    {% endif %}
     <div class="container">
         <div class="row">
-
             {% for mesa in cargarMesas %}
             <div class="col-md-4 mb-3">
 
@@ -27,118 +40,46 @@
                         bg-secondary
                     {% endif %}
                 ">
-
                     <div class="card-header">
                         Mesa {{ mesa.num_mesa }}
                     </div>
-
                     <div class="card-body">
-
                         <h5 class="card-title">
                             Estado: {{ mesa.nombre_estado }}
                         </h5>
-
                         <div class="d-flex gap-2 flex-wrap">
-
-                            <button
-                                class="btn btn-success btnLibre"
-                                data-id="{{ mesa.id_mesa }}">
+                            <button class="btn btn-success btnLibre" data-id="{{ mesa.id_mesa }}">
                                 Libre
                             </button>
-
-                            <button
-                                class="btn btn-danger btnOcupado"
-                                data-id="{{ mesa.id_mesa }}">
+                            <button class="btn btn-danger btnOcupado" data-id="{{ mesa.id_mesa }}">
                                 Ocupado
                             </button>
-
-                            <button
-                                class="btn btn-warning btnMantenimiento"
-                                data-id="{{ mesa.id_mesa }}">
+                            <button class="btn btn-warning btnMantenimiento" data-id="{{ mesa.id_mesa }}">
                                 Mantenimiento
                             </button>
-
+                            {% if rol == 'admin' %}
+                            <button class="btn btn-dark btnEliminar" data-id="{{ mesa.id_mesa }}">
+                                Eliminar
+                            </button>
+                            {% endif %}
                         </div>
-
                     </div>
-
                 </div>
-
             </div>
             {% endfor %}
-
-            {% if user.is_superuser %}
-            <div class="col-md-4 mb-3">
-
-                <div class="card border-primary h-100">
-
-                    <div class="card-body text-center d-flex flex-column justify-content-center">
-
-                        <h1 class="display-3">+</h1>
-
-                        <h4>Agregar Mesa</h4>
-
-                        <a href="{% url 'registrarMesa' %}"
-                           class="btn btn-primary mt-3">
-                            Nueva Mesa
-                        </a>
-
-                    </div>
-
-                </div>
-
-            </div>
-            {% endif %}
-
         </div>
     </div>
-
 </div>
-
-    {% endblock %}
-
-    {% block extra_js %}
+{% endblock %}
+{% block extra_js %}
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    const cambiarEstado = (id_mesa, estado) => {
-        if (!/^\d+$/.test(String(id_mesa)) || ![1, 2, 3].includes(estado)) {
-            return;
-        }
-
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = "{% url 'editarMesa' %}";
-
-        const csrfInput = document.createElement('input');
-        csrfInput.type = 'hidden';
-        csrfInput.name = 'csrfmiddlewaretoken';
-        csrfInput.value = '{{ csrf_token }}';
-
-        const idMesaInput = document.createElement('input');
-        idMesaInput.type = 'hidden';
-        idMesaInput.name = 'id_mesa';
-        idMesaInput.value = id_mesa;
-
-        const estadoInput = document.createElement('input');
-        estadoInput.type = 'hidden';
-        estadoInput.name = 'estado';
-        estadoInput.value = estado;
-
-        form.appendChild(csrfInput);
-        form.appendChild(idMesaInput);
-        form.appendChild(estadoInput);
-        document.body.appendChild(form);
-        form.submit();
+    const CSRF_TOKEN = '{{ csrf_token }}';
+    const URLS = {
+        editarMesa: "{% url 'editarMesa' %}",
+        eliminarMesa: "{% url 'eliminarMesa' %}",
     };
-
-    document.querySelectorAll('.btnOcupado').forEach(btn =>
-        btn.addEventListener('click', () => cambiarEstado(btn.dataset.id, 1))
-    );
-    document.querySelectorAll('.btnLibre').forEach(btn =>
-        btn.addEventListener('click', () => cambiarEstado(btn.dataset.id, 2))
-    );
-    document.querySelectorAll('.btnMantenimiento').forEach(btn =>
-        btn.addEventListener('click', () => cambiarEstado(btn.dataset.id, 3))
-    );
 </script>
+<script src="{% static 'appMorocha/js/mesas.js' %}"></script>
 {% endblock %}

@@ -13,6 +13,10 @@ def inicio(request):
         return redirect('login')    
     return render(request, 'appMorocha/inicio.html')
 
+#funcion para retornar si no es admin
+def admin_requerido(request):
+    return request.COOKIES.get('rol') != 'admin'
+
 def login(request):
     if request.method == 'POST':
         nombre_usuario = request.POST.get('txt_usuario')
@@ -75,7 +79,8 @@ def registrarAuditoria(conexion, username, id_estado, password=None):
 def auditoriaLogin(request):
     if login_requerido(request):
         return redirect('login')
-
+    if admin_requerido(request):
+        return redirect('inicio')
     conexion = ConexionDB()
     registros = conexion.consultar("""
         SELECT au.id_auditoria, au.username, au.fecha_hora,
@@ -130,6 +135,8 @@ def cargarRegistrosPedidos():
 def registrarPedido(request):
     if login_requerido(request):
         return redirect('login')
+    if admin_requerido(request):
+        return redirect('inicio')    
     db = ConexionDB()
 
     if request.method == 'POST':
@@ -218,9 +225,13 @@ def registrarPedido(request):
     return render(request, 'appMorocha/registrarPedido.html', context)
 
 def eliminarPedido(request, id_pedido):
-    if request.method == 'GET':
+    if login_requerido(request):
+        return redirect('login')
+    if admin_requerido(request):
+        return redirect('inicio')
+    if request.method == 'GET':        
         db = ConexionDB()
-
+                
         # Obtener la mesa antes de eliminar
         pedido = db.consultar(
             "SELECT id_mesa FROM tb_pedido WHERE id_pedido = %s LIMIT 1",
@@ -243,28 +254,6 @@ def eliminarPedido(request, id_pedido):
 
         return redirect('listarPedidos')
        
-def detallePedido(request, id_pedido):
-    db = ConexionDB()
-
-    if request.method == 'POST':
-        db.ejecutar("""
-            INSERT INTO tb_detallepedido 
-                (id_pedido, id_producto, cantidad)
-            VALUES (%s, %s, %s)
-        """, [
-            id_pedido,
-            request.POST['id_producto'],
-            request.POST['cantidad'],
-        ])
-
-        return redirect('detallePedido', id_pedido=id_pedido)
-
-    context = {
-        'id_pedido':  id_pedido,
-        'productos':  db.consultar("SELECT id_producto, nombre_producto, precio_producto FROM tb_producto"),
-    }
-    return render(request, 'appMorocha/detallePedido.html', context)
-
 # cambiar estado de los pedidos
 def actualizarEstadoPedido(request, id_pedido, estado):
     db = ConexionDB()
@@ -290,7 +279,7 @@ def actualizarEstadoPedido(request, id_pedido, estado):
         id_mesa = pedido[0]['id_mesa']
 
         # Determinar el nuevo estado de la mesa
-        if estado in ['Finalizado', 'Listo']:
+        if estado in ['Finalizado']:
             nombre_estado_mesa = 'Libre'
         else:  # Preparando, Espera
             nombre_estado_mesa = 'Ocupado'
@@ -308,25 +297,30 @@ def actualizarEstadoPedido(request, id_pedido, estado):
     return redirect('estadoPedido')
 
 def listarPedidos(request):
-    if login_requerido(request):
+    if login_requerido(request):        
         return redirect('login')
+    if admin_requerido(request):
+        return redirect('inicio')    
     pedidos = cargarRegistrosPedidos()
     return render(request, 'appMorocha/listarPedidos.html', {'cargarPedidos': pedidos})
 
 # Vistas para la gestión de usuarios
 def usuario(request):
     if login_requerido(request):
-        return redirect('login')    
+        return redirect('login')
+    if admin_requerido(request):
+        return redirect('inicio')        
     db = ConexionDB()
     UsuariosRegistrados = cargarRegistros()
-    roles = db.consultar("""
-        SELECT id_rol, nombre_rol
-        FROM tb_roles
-    """)
-    return render(request,'appMorocha/usuario.html',{
+    roles = db.consultar("SELECT id_rol, nombre_rol FROM tb_roles")
+    context = {
         'UsuariosRegistrados': UsuariosRegistrados,
         'roles': roles
-    })
+    }
+    if request.GET.get('error') == 'tiene_pedidos':
+        context['msg'] = f"No se puede eliminar: el usuario '{request.GET.get('usuario')}' tiene pedidos asociados."
+        context['color'] = 'red'
+    return render(request, 'appMorocha/usuario.html', context)
 
 # Cargar usuarios registrados
 def cargarRegistros():
@@ -346,6 +340,10 @@ def cargarRegistros():
 
  # Guardar usuario
 def procesarUsuario(request):
+    if login_requerido(request):
+        return redirect('login')
+    if admin_requerido(request):
+        return redirect('inicio')    
     db = ConexionDB()
     if(request.method == 'GET'):
         nombreUsuario=request.GET.get('txt_nombreusuario')
@@ -379,24 +377,38 @@ def procesarUsuario(request):
     return render(request,'appMorocha/usuario.html',context)
 
 # Eliminar usuario
-def eliminarUsuario(request,nombreUsuario):
-    conexion=ConexionDB()
-    validarRegistro="""
-        select * from tb_usuario where nombre_usuario = %s
-    """
-    if(conexion.consultar(validarRegistro,(nombreUsuario,))):
-        #Existe un registro
-        consultaEliminar="""
-            delete from tb_usuario  where nombre_usuario = %s
-        """
-        conexion.ejecutar(consultaEliminar,(nombreUsuario,))
-        usuarios = cargarRegistros()
-        return render(request,'appMorocha/usuario.html',{
-        "UsuariosRegistrados" : usuarios
-        })
+def eliminarUsuario(request, nombreUsuario):
+    if login_requerido(request):
+        return redirect('login')    
+    if admin_requerido(request):
+        return redirect('inicio')       
+    conexion = ConexionDB()
+    # Verificar si tiene pedidos asociados
+    tiene_pedidos = conexion.consultar("""
+        SELECT p.id_pedido FROM tb_pedido p
+        INNER JOIN tb_usuario u ON p.id_usuario = u.id_usuario
+        WHERE u.nombre_usuario = %s LIMIT 1
+    """, (nombreUsuario,))
+    if tiene_pedidos:
+        return redirect(f'/usuario/?error=tiene_pedidos&usuario={nombreUsuario}')
+    # Verificar si existe y eliminar
+    existe = conexion.consultar(
+        "SELECT * FROM tb_usuario WHERE nombre_usuario = %s",
+        (nombreUsuario,)
+    )
+    if existe:
+        conexion.ejecutar(
+            "DELETE FROM tb_usuario WHERE nombre_usuario = %s",
+            (nombreUsuario,)
+        )
+    return redirect('/usuario/')
     
 # Editar usuario
 def editarUsuario(request):
+    if login_requerido(request):
+        return redirect('login')
+    if admin_requerido(request):
+        return redirect('inicio')    
     if request.method == 'GET':
         id_usuario    = request.GET.get('id_usuario')
         nombreUsuario = request.GET.get('txt_nombreusuario')
@@ -436,7 +448,9 @@ def editarUsuario(request):
 # Ingresar vista para productos
 def ingresarProducto(request):
     if login_requerido(request):
-        return redirect('login')    
+        return redirect('login')
+    if admin_requerido(request):
+        return redirect('inicio')        
     ProductosRegistrados = cargarRegistrosProductos()
     return render(request, 'appMorocha/ingresarProducto.html', {'ProductosRegistrados': ProductosRegistrados})
 
@@ -451,6 +465,10 @@ def cargarRegistrosProductos():
     return producto
 # Guardar producto
 def procesarProducto(request):
+    if login_requerido(request):
+        return redirect('login')
+    if admin_requerido(request):
+        return redirect('inicio')    
     if request.method == 'GET':
         nombreProducto = request.GET.get('txt_nombreproducto')
         precio = request.GET.get('txt_precio')
@@ -479,6 +497,10 @@ def procesarProducto(request):
     return render(request, 'appMorocha/ingresarProducto.html')
 
 def editarProducto(request):
+    if login_requerido(request):
+        return redirect('login')
+    if admin_requerido(request):
+        return redirect('inicio')    
     if request.method == 'GET':
         id_producto    = request.GET.get('id_producto')
         nombreProducto = request.GET.get('txt_nombreproducto')
@@ -509,8 +531,11 @@ def editarProducto(request):
         return render(request, 'appMorocha/ingresarProducto.html', contexto)
     return redirect('ingresarProducto')
 
-
 def eliminarProducto(request, id_producto):
+    if login_requerido(request):
+        return redirect('login')
+    if admin_requerido(request):
+        return redirect('inicio')    
     conexion = ConexionDB()
     conexion.ejecutar(
         "DELETE FROM tb_producto WHERE id_producto = %s", (id_producto,)
@@ -522,9 +547,41 @@ def ingresarMesa(request):
     if login_requerido(request):
         return redirect('login')    
     cargarMesas = cargarRegistrosMesas()
+    #aviso de que no se puede eliminar una mesa con pedidos asociados.
+    context = {'cargarMesas': cargarMesas}
+    if request.GET.get('error') == 'tiene_pedidos':
+        context['msg'] = 'No se puede eliminar: esta mesa tiene pedidos asociados.'
+        context['color'] = 'red'    
     
-    return render(request, 'appMorocha/ingresarMesa.html', {'cargarMesas': cargarMesas})
+    return render(request, 'appMorocha/ingresarMesa.html', context)
 
+# Agregar Mesas
+@require_POST
+def agregarMesa(request):
+    if login_requerido(request):
+        return redirect('login')
+    if admin_requerido(request):
+        return redirect('ingresarMesa')    
+
+    conexion = ConexionDB()
+
+    # Calcular automáticamente el siguiente número de mesa
+    siguiente = conexion.consultar(
+        "SELECT COALESCE(MAX(num_mesa), 0) + 1 AS siguiente FROM tb_mesa"
+    )
+    num_mesa = siguiente[0]['siguiente']
+
+    estado_libre = conexion.consultar(
+        "SELECT id_estadomesa FROM tb_estadomesa WHERE nombre_estado = 'Libre' LIMIT 1"
+    )
+    if estado_libre:
+        conexion.ejecutar(
+            "INSERT INTO tb_mesa (num_mesa, id_estadomesa) VALUES (%s, %s)",
+            (num_mesa, estado_libre[0]['id_estadomesa'])
+        )
+
+    return redirect('ingresarMesa')
+    
 # Cargar mesas registradas
 def cargarRegistrosMesas():
     conexion = ConexionDB()
@@ -547,7 +604,7 @@ def cargarRegistrosMesas():
 @require_POST
 def editarMesa(request):
     if login_requerido(request):
-        return redirect('login')
+        return redirect('login')    
     id_mesa = request.POST.get('id_mesa')
     estado = request.POST.get('estado')
     estados_permitidos = {'1', '2', '3'}
@@ -560,9 +617,30 @@ def editarMesa(request):
     )
     return redirect('ingresarMesa')
 
+@require_POST
+def eliminarMesa(request):
+    if login_requerido(request):
+        return redirect('login')
+    if admin_requerido(request):
+        return redirect('ingresarMesa')
+    id_mesa = request.POST.get('id_mesa')
+    if not (id_mesa and id_mesa.isdigit()):
+        return redirect('ingresarMesa')
+    conexion = ConexionDB()
+    # Consulta por si la mesa tiene pedidos para validar si se elimina o no
+    tiene_pedidos = conexion.consultar(
+        "SELECT id_pedido FROM tb_pedido WHERE id_mesa = %s LIMIT 1",
+        (id_mesa,)
+    )
+    if tiene_pedidos:
+        return redirect('/ingresarMesa/?error=tiene_pedidos')
+    conexion.ejecutar(
+        "DELETE FROM tb_mesa WHERE id_mesa = %s",
+        (id_mesa,)
+    )
+    return redirect('ingresarMesa')
+
 # Api 
-
-
 def exportar_a_sheets(request):
     con = ConexionDB()
 
@@ -593,7 +671,8 @@ def exportar_a_sheets(request):
 def datos_dashboard(request):
     if login_requerido(request):
         return JsonResponse({'error': 'no autorizado'}, status=401)
-    
+    if admin_requerido(request):
+        return JsonResponse({'error': 'sin permiso'}, status=403)
     db = ConexionDB()
 
     # Gráfico 1: Productos más pedidos
@@ -630,4 +709,6 @@ def datos_dashboard(request):
 def dashboard(request):
     if login_requerido(request):
         return redirect('login')
+    if admin_requerido(request):
+        return redirect('inicio')
     return render(request, 'appMorocha/dashboard.html')

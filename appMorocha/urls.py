@@ -14,7 +14,6 @@ urlpatterns = [
     path('listarPedidos/',views.listarPedidos, name='listarPedidos'),
     path('auditoria/', views.auditoriaLogin, name='auditoria'),
     # Acciones para Pedidos
-    path('detallePedido/<int:id_pedido>/',views.detallePedido, name='detallePedido'),
     path('eliminarPedido/<int:id_pedido>/', views.eliminarPedido, name='eliminarPedido'),
     path('actualizar-estado/<int:id_pedido>/<str:estado>/', views.actualizarEstadoPedido, name='actualizarEstadoPedido'),
 
@@ -28,6 +27,8 @@ urlpatterns = [
     path('eliminarProducto/<int:id_producto>/',  views.eliminarProducto,  name='eliminarProducto'),
    # Acciones para Mesa
     path('editarMesa/', views.editarMesa, name='editarMesa'),
+    path('agregarMesa/', views.agregarMesa, name='agregarMesa'),
+    path('eliminarMesa/', views.eliminarMesa, name='eliminarMesa'),
     # Api para exportar a google sheets
     path('exportar-sheets/', views.exportar_a_sheets, name='exportar_sheets'),
     path('dashboard/datos/', views.datos_dashboard, name='datos_dashboard'),
