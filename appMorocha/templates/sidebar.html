@@ -204,6 +204,7 @@
             <a href="/ingresarMesa/" class="menu-item">
                 <i class="fas fa-table"></i><span>Mesas</span>
             </a>
+            {% if rol == 'admin' %}
             <div class="menu-label">Admin</div>
             <a href="/dashboard/" class="menu-item">
                 <i class="fas fa-chart-bar"></i><span>Dashboard</span>
@@ -219,6 +220,7 @@
             <a href="/auditoria/" class="menu-item">
                 <i class="fas fa-clipboard-list"></i><span>Auditoria de Login</span>
             </a>
+            {% endif %}
         </nav>
     </div>
     <div class="sidebar-bottom">
