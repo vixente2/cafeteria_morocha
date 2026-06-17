@@ -1,0 +1,160 @@
+{% extends 'sidebar.html' %}
+{% load static %}
+
+{% block titulo %}Pagar{% endblock %}
+
+{% block contenido %}
+<div class="row">
+    <h1>Página de Pagos</h1>
+
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Registrar Pago</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">Seleccionar Pedido Pendiente</label>
+                    <select class="form-select" id="selectPedido">
+                        <option value="">-- Selecciona un pedido --</option>
+                        {% for pedido in pedidos_pendientes %}
+                        <option value="{{ pedido.id_pedido }}" data-total="{{ pedido.total }}">
+                            Pedido #{{ pedido.id_pedido }} — {{ pedido.nombre_cliente }} — Mesa {{ pedido.num_mesa }} — ${{ pedido.total }}
+                        </option>
+                        {% empty %}
+                        <option disabled>No hay pedidos pendientes</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Método de Pago</label>
+                    <select class="form-select" id="selectMetodo">
+                        <option value="">-- Selecciona método --</option>
+                        <option value="QR">📱 QR (MercadoPago)</option>
+                        <option value="Efectivo">💵 Efectivo</option>
+                        <option value="Tarjeta">💳 Tarjeta</option>
+                    </select>
+                </div>
+
+                <button class="btn btn-success w-100" onclick="procesarPago()">
+                    Procesar Pago
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Historial -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">Historial de Pagos</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Pedido</th>
+                            <th>Cliente</th>
+                            <th>Total</th>
+                            <th>Método</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pago in historial_pagos %}
+                        <tr>
+                            <td>{{ pago.id_pago }}</td>
+                            <td>#{{ pago.id_pedido }}</td>
+                            <td>{{ pago.nombre_cliente }}</td>
+                            <td>${{ pago.total }}</td>
+                            <td>
+                                {% if pago.metodo == 'QR' %}📱
+                                {% elif pago.metodo == 'Efectivo' %}💵
+                                {% elif pago.metodo == 'Tarjeta' %}💳
+                                {% endif %}
+                                {{ pago.metodo }}
+                            </td>
+                            <td>
+                                <span class="badge {% if pago.estado == 'Pagado' %}bg-success{% else %}bg-warning{% endif %}">
+                                    {{ pago.estado }}
+                                </span>
+                            </td>
+                            <td>{{ pago.fecha }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted">Sin pagos registrados</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+function procesarPago() {
+    const ordenId = document.getElementById('selectPedido').value;
+    const metodo = document.getElementById('selectMetodo').value;
+
+    if (!ordenId || !metodo) {
+        Swal.fire('Atención', 'Selecciona un pedido y un método de pago', 'warning');
+        return;
+    }
+
+    if (metodo === 'QR') {
+        Swal.fire({ title: 'Generando QR...', didOpen: () => Swal.showLoading() });
+
+        fetch(`/generar-qr/${ordenId}/`)
+            .then(res => res.json())
+            .then(data => {
+                Swal.fire({
+                    title: `💳 Pagar Orden #${ordenId}`,
+                    html: `
+                        <p><strong>Total: $${data.total}</strong></p>
+                        <img src="data:image/png;base64,${data.qr}" style="width:230px;">
+                        <p class="text-muted mt-2">Escanea con la app de MercadoPago</p>
+                    `,
+                    confirmButtonText: '✅ Confirmar Pago',
+                    confirmButtonColor: '#009ee3',
+                    showCancelButton: true,
+                    cancelButtonText: 'Cancelar'
+                }).then(result => {
+                    if (result.isConfirmed) {
+                        confirmarPago(ordenId, metodo);
+                    }
+                });
+            });
+    } else {
+        Swal.fire({
+            title: '¿Confirmar pago?',
+            text: `Método: ${metodo}`,
+            icon: 'question',
+            confirmButtonText: '✅ Confirmar',
+            showCancelButton: true,
+            cancelButtonText: 'Cancelar'
+        }).then(result => {
+            if (result.isConfirmed) {
+                confirmarPago(ordenId, metodo);
+            }
+        });
+    }
+}
+
+function confirmarPago(ordenId, metodo) {
+    fetch(`/confirmar-pago/${ordenId}/${metodo}/`)
+        .then(res => res.json())
+        .then(() => {
+            Swal.fire('¡Pagado!', 'El pago fue registrado correctamente.', 'success')
+                .then(() => location.reload());
+        });
+}
+</script>
+{% endblock %}
